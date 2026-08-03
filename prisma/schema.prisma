@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EntityStatus {
+  draft
+  published
+  archived
+}
+
+enum Recommendation {
+  buy
+  overweight
+  hold
+  underweight
+  sell
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String
+  passwordHash     String
+  role             String            @default("viewer")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  authoredMemos    InvestmentMemo[]  @relation("MemoAuthor")
+  watchlistEntries WatchlistItem[]
+  industryReports  IndustryReport[]
+  marketOutlooks   MarketOutlook[]
+  researchJournals ResearchJournal[]
+}
+
+model Company {
+  id               String            @id @default(cuid())
+  name             String
+  ticker           String            @unique
+  exchange         String
+  sector           String
+  industry         String
+  description      String?
+  status           EntityStatus      @default(draft)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  memos            InvestmentMemo[]
+  reports          IndustryReport[]
+  outlooks         MarketOutlook[]
+  journalEntries   ResearchJournal[]
+  watchlistEntries WatchlistItem[]
+  attachments      Attachment[]
+}
+
+model WatchlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+}
+
+model InvestmentMemo {
+  id                String         @id @default(cuid())
+  companyId         String
+  authorId          String?
+  title             String
+  slug              String         @unique
+  recommendation    Recommendation
+  targetPrice       Decimal        @db.Decimal(18, 4)
+  currentPrice      Decimal        @db.Decimal(18, 4)
+  expectedReturn    Decimal        @db.Decimal(10, 4)
+  investmentHorizon String
+  convictionLevel   Int
+  executiveSummary  String
+  thesis            String
+  status            EntityStatus   @default(draft)
+  publishedAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  author            User?          @relation("MemoAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  tags              MemoTag[]
+  attachments       Attachment[]
+}
+
+model IndustryReport {
+  id                     String       @id @default(cuid())
+  companyId              String?
+  authorId               String?
+  title                  String
+  slug                   String       @unique
+  executiveSummary       String
+  overview               String
+  marketSize             String
+  tam                    String
+  sam                    String
+  som                    String
+  growth                 String
+  porterFiveForces       String
+  valueChain             String
+  competitors            String
+  supplyChain            String
+  demandDrivers          String
+  technologyTrends       String
+  regulation             String
+  risks                  String
+  investmentImplications String
+  status                 EntityStatus @default(draft)
+  publishedAt            DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  company                Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  author                 User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  attachments            Attachment[]
+}
+
+model MarketOutlook {
+  id                   String       @id @default(cuid())
+  companyId            String?
+  authorId             String?
+  title                String
+  slug                 String       @unique
+  month                String
+  executiveSummary     String
+  federalReserve       String
+  interestRates        String
+  inflation            String
+  gdp                  String
+  employment           String
+  geopolitics          String
+  currencies           String
+  commodities          String
+  technology           String
+  ai                   String
+  semiconductors       String
+  healthcare           String
+  consumer             String
+  financials           String
+  marketValuation      String
+  sectorOutlook        String
+  portfolioPositioning String
+  conclusion           String
+  status               EntityStatus @default(draft)
+  publishedAt          DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  company              Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  author               User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  attachments          Attachment[]
+}
+
+model ResearchJournal {
+  id          String       @id @default(cuid())
+  companyId   String?
+  authorId    String?
+  title       String
+  slug        String       @unique
+  prompt      String
+  body        String
+  reflections String
+  status      EntityStatus @default(draft)
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  author      User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  attachments Attachment[]
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  memoTags  MemoTag[]
+}
+
+model MemoTag {
+  id     String         @id @default(cuid())
+  memoId String
+  tagId  String
+  memo   InvestmentMemo @relation(fields: [memoId], references: [id], onDelete: Cascade)
+  tag    Tag            @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([memoId, tagId])
+}
+
+model Attachment {
+  id                String   @id @default(cuid())
+  companyId         String?
+  memoId            String?
+  industryReportId  String?
+  marketOutlookId   String?
+  researchJournalId String?
+  fileName          String
+  fileType          String
+  fileSize          Int
+  url               String
+  publicId          String
+  createdAt         DateTime @default(now())
+
+  company         Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  memo            InvestmentMemo?  @relation(fields: [memoId], references: [id], onDelete: SetNull)
+  industryReport  IndustryReport?  @relation(fields: [industryReportId], references: [id], onDelete: SetNull)
+  marketOutlook   MarketOutlook?   @relation(fields: [marketOutlookId], references: [id], onDelete: SetNull)
+  researchJournal ResearchJournal? @relation(fields: [researchJournalId], references: [id], onDelete: SetNull)
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

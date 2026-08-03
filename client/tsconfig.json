@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "noEmit": false,
+    "paths": {
+      "@/*": ["src/*"],
+      "@atlas/shared": ["../shared/src"]
+    }
+  },
+  "include": ["src"],
+  "references": []
+}
