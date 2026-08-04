@@ -1,6 +1,7 @@
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import helmet from "helmet";
+import { env } from "./config/env.js";
 import { prisma } from "./config/prisma.js";
 import { apiRouter } from "./routes/index.js";
 import { authRouter } from "./routes/authRoutes.js";
@@ -8,14 +9,39 @@ import { adminRouter } from "./routes/adminRoutes.js";
 
 export function createServer() {
   const app = express();
+    app.use((req, _res, next) => {
+    console.log(
+      `[${new Date().toISOString()}] ${req.method} ${req.url} Origin: ${req.headers.origin}`
+    );
+    next();
+  });
+
+  const allowedOrigins = new Set<string>([
+    "http://localhost:5173",
+    ...env.CORS_ALLOWED_ORIGINS
+  ]);
+
+  if (env.CODESPACE_NAME && env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN) {
+    allowedOrigins.add(
+      `https://${env.CODESPACE_NAME}-5173.${env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`
+    );
+  }
+
+  const corsOptions: cors.CorsOptions = {
+    credentials: true,
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    }
+  };
 
   app.use(helmet());
-  app.use(
-    cors({
-      origin: process.env.CLIENT_URL ?? "http://localhost:5173",
-      credentials: true
-    })
-  );
+  app.use(cors(corsOptions));
+  app.options(/.*/, cors(corsOptions));
   app.use(express.json({ limit: "2mb" }));
 
   app.use("/api", apiRouter);
