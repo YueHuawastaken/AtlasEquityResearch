@@ -1,14 +1,11 @@
 import { NavLink } from "react-router-dom";
 
 const links = [
-  { to: "/coverage", label: "Coverage" },
   { to: "/research", label: "Research" },
   { to: "/industry-research", label: "Industry Research" },
   { to: "/market-outlooks", label: "Outlooks" },
   { to: "/journal", label: "Journal" },
-  { to: "/search", label: "Search" },
   { to: "/companies", label: "Companies" },
-  { to: "/watchlist", label: "Watchlist" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
   { to: "/admin", label: "Admin" }

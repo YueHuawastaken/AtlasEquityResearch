@@ -1,6 +1,5 @@
 import { type NextFunction, type Request, type Response, Router } from "express";
 import { prisma } from "../config/prisma.js";
-import { normalizeEntityStatus } from "../utils/filters.js";
 import { parsePagination } from "../utils/pagination.js";
 
 export const industryReportRouter = Router();
@@ -9,10 +8,10 @@ industryReportRouter.get("/", async (req: Request, res: Response, next: NextFunc
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
     const companyId = typeof req.query.companyId === "string" ? req.query.companyId.trim() : "";
-    const status = normalizeEntityStatus(typeof req.query.status === "string" ? req.query.status : null);
     const { page, pageSize } = parsePagination(new URLSearchParams(req.query as Record<string, string>));
 
     const where = {
+      status: "published" as const,
       ...(search
         ? {
             OR: [
@@ -22,8 +21,7 @@ industryReportRouter.get("/", async (req: Request, res: Response, next: NextFunc
             ]
           }
         : {}),
-      ...(companyId ? { companyId } : {}),
-      ...(status ? { status } : {})
+      ...(companyId ? { companyId } : {})
     };
 
     const [total, items] = await Promise.all([
@@ -53,8 +51,8 @@ industryReportRouter.get("/", async (req: Request, res: Response, next: NextFunc
 
 industryReportRouter.get("/:reportId", async (req: Request<{ reportId: string }>, res: Response, next: NextFunction) => {
   try {
-    const item = await prisma.industryReport.findUnique({
-      where: { id: req.params.reportId },
+    const item = await prisma.industryReport.findFirst({
+      where: { id: req.params.reportId, status: "published" },
       include: {
         company: true,
         author: { select: { id: true, name: true, email: true } },

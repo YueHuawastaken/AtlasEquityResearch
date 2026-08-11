@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   createAdminAttachment,
   deleteAdminAttachment,
@@ -18,6 +19,7 @@ export function AttachmentManager({ scope, parentId, title }: AttachmentManagerP
   const [items, setItems] = useState<AdminAttachment[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token || !parentId) {
@@ -40,11 +42,18 @@ export function AttachmentManager({ scope, parentId, title }: AttachmentManagerP
       return;
     }
 
+    setError(null);
     setLoading(true);
     try {
       await createAdminAttachment(token, scope, parentId, file);
       setItems(await fetchAdminAttachments(token, scope, parentId));
       setFile(null);
+    } catch (caughtError) {
+      if (axios.isAxiosError<{ message?: string }>(caughtError)) {
+        setError(caughtError.response?.data?.message ?? "Upload failed. Please try again.");
+      } else {
+        setError("Upload failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,6 +91,8 @@ export function AttachmentManager({ scope, parentId, title }: AttachmentManagerP
           {loading ? "Uploading…" : "Upload File"}
         </button>
       </div>
+
+      {error ? <p className="auth-error">{error}</p> : null}
 
       <div className="admin-list">
         {items.length ? items.map((attachment) => (

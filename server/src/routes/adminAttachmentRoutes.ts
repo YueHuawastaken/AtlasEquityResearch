@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { prisma } from "../config/prisma.js";
+import { env } from "../config/env.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { requireRole } from "../middleware/roleMiddleware.js";
 import { deleteFromCloudinary, isCloudinaryReady, uploadBufferToCloudinary } from "../services/cloudinary.js";
@@ -64,7 +65,16 @@ adminAttachmentRouter.post("/", upload.single("file"), async (req: any, res: any
     }
 
     if (!isCloudinaryReady()) {
-      return res.status(503).json({ message: "Cloudinary is not configured" });
+      const missing = [
+        !env.CLOUDINARY_CLOUD_NAME ? "CLOUDINARY_CLOUD_NAME" : null,
+        !env.CLOUDINARY_API_KEY ? "CLOUDINARY_API_KEY" : null,
+        !env.CLOUDINARY_API_SECRET ? "CLOUDINARY_API_SECRET" : null
+      ].filter(Boolean);
+
+      return res.status(503).json({
+        message: "Cloudinary is not configured",
+        missing
+      });
     }
 
     const scope = req.body.scope as AttachmentScope | undefined;
@@ -100,6 +110,10 @@ adminAttachmentRouter.post("/", upload.single("file"), async (req: any, res: any
 
     res.status(201).json({ item });
   } catch (error) {
+    if (error instanceof Error && error.message.includes("Cloudinary")) {
+      return res.status(502).json({ message: error.message });
+    }
+
     next(error);
   }
 });

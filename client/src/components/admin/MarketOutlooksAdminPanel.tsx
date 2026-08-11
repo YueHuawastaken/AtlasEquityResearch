@@ -41,7 +41,11 @@ const emptyForm: MarketOutlookPayload = {
   publishedAt: null
 };
 
-export function MarketOutlooksAdminPanel() {
+interface MarketOutlooksAdminPanelProps {
+  companyRefreshKey?: number;
+}
+
+export function MarketOutlooksAdminPanel({ companyRefreshKey = 0 }: MarketOutlooksAdminPanelProps) {
   const token = localStorage.getItem("atlas-admin-token");
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [items, setItems] = useState<AdminMarketOutlook[]>([]);
@@ -66,7 +70,7 @@ export function MarketOutlooksAdminPanel() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, companyRefreshKey]);
 
   if (!token) {
     return null;

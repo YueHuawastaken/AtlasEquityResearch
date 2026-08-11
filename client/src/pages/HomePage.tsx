@@ -31,7 +31,7 @@ interface HomePayload {
 }
 
 const fallbackStats: DashboardStat[] = [
-  { label: "Coverage", value: "0", detail: "Companies modeled" },
+  { label: "Companies", value: "0", detail: "Companies covered" },
   { label: "Memos", value: "0", detail: "Published research notes" },
   { label: "Reports", value: "0", detail: "Industry and market views" },
   { label: "Downloads", value: "0", detail: "Files shared with users" }
@@ -76,7 +76,7 @@ export function HomePage() {
 
         <div className="hero-panel">
           <div className="panel-row">
-            <span>Featured Coverage</span>
+            <span>Featured Companies</span>
             <strong>Company, memo, and valuation data will come from the database.</strong>
           </div>
           <div className="panel-row muted">

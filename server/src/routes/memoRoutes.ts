@@ -13,6 +13,7 @@ memoRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
     const { page, pageSize } = parsePagination(new URLSearchParams(req.query as Record<string, string>));
 
     const where = {
+      status: "published" as const,
       ...(search
         ? {
             OR: [
@@ -69,8 +70,8 @@ memoRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
 
 memoRouter.get("/:memoId", async (req: Request<{ memoId: string }>, res: Response, next: NextFunction) => {
   try {
-    const memo = await prisma.investmentMemo.findUnique({
-      where: { id: req.params.memoId },
+    const memo = await prisma.investmentMemo.findFirst({
+      where: { id: req.params.memoId, status: "published" },
       include: {
         company: true,
         tags: { include: { tag: true } },

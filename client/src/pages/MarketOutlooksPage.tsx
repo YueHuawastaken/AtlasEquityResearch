@@ -26,7 +26,7 @@ export function MarketOutlooksPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    void fetchMarketOutlooks({ search: searchParams.get("search") ?? undefined, companyId: searchParams.get("companyId") ?? undefined, status: searchParams.get("status") ?? undefined })
+    void fetchMarketOutlooks({ search: searchParams.get("search") ?? undefined, companyId: searchParams.get("companyId") ?? undefined })
       .then((response) => { if (active) setItems(response.items); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -69,12 +69,6 @@ export function MarketOutlooksPage() {
               <option key={company.id} value={company.id}>{company.name} ({company.ticker})</option>
             ))}
           </select>
-          <select value={searchParams.get("status") ?? ""} onChange={(event) => updateFilter("status", event.target.value)}>
-            <option value="">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
           <button type="button" className="ghost-button" onClick={() => { setQuery(""); setSearchParams(new URLSearchParams()); }}>Clear Filters</button>
         </div>
       </section>
@@ -85,7 +79,7 @@ export function MarketOutlooksPage() {
             {items.map((item) => (
               <Link key={item.id} to={`/market-outlooks/${item.id}`} className="stack-row">
                 <strong>{item.title}</strong>
-                <span>{item.month} · {item.company ? `${item.company.name} (${item.company.ticker}) · ` : ""}{item.status}</span>
+                <span>{item.month} · {item.company ? `${item.company.name} (${item.company.ticker})` : "Market outlook"}</span>
                 <p className="muted">{item.executiveSummary}</p>
               </Link>
             ))}

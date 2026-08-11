@@ -13,8 +13,6 @@ import { MemosPage } from "./pages/MemosPage.js";
 import { MemoDetailPage } from "./pages/MemoDetailPage.js";
 import { ResearchJournalPage } from "./pages/ResearchJournalPage.js";
 import { ResearchJournalDetailPage } from "./pages/ResearchJournalDetailPage.js";
-import { SearchPage } from "./pages/SearchPage.js";
-import { WatchlistPage } from "./pages/WatchlistPage.js";
 import { AboutPage } from "./pages/AboutPage.js";
 import { ContactPage } from "./pages/ContactPage.js";
 
@@ -23,7 +21,6 @@ export default function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/coverage" element={<CompaniesPage />} />
         <Route path="/companies" element={<CompaniesPage />} />
         <Route path="/companies/:companyId" element={<CompanyDetailPage />} />
         <Route path="/industry-research" element={<IndustryReportsPage />} />
@@ -34,10 +31,8 @@ export default function App() {
         <Route path="/research/:memoId" element={<MemoDetailPage />} />
         <Route path="/journal" element={<ResearchJournalPage />} />
         <Route path="/journal/:journalId" element={<ResearchJournalDetailPage />} />
-        <Route path="/search" element={<SearchPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/watchlist" element={<WatchlistPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>

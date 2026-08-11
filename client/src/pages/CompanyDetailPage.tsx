@@ -1,38 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchCompany, type CompanyDetail } from "../services/researchApi.js";
-import {
-  addCompanyToPersistentWatchlist,
-  fetchPersistentWatchlistCompanyIds,
-  getWatchlistCompanyIds,
-  isCompanyInWatchlist,
-  removeCompanyFromPersistentWatchlist,
-  toggleCompanyInWatchlist
-} from "../services/watchlist.js";
 
 export function CompanyDetailPage() {
   const { companyId } = useParams();
-  const token = localStorage.getItem("atlas-admin-token");
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [watchlistIds, setWatchlistIds] = useState<string[]>([]);
 
   useEffect(() => {
     let active = true;
-
-    void (async () => {
-      if (token) {
-        try {
-          const ids = await fetchPersistentWatchlistCompanyIds(token);
-          if (active) setWatchlistIds(ids);
-          return;
-        } catch {
-          if (active) setWatchlistIds(getWatchlistCompanyIds());
-        }
-      } else if (active) {
-        setWatchlistIds(getWatchlistCompanyIds());
-      }
-    })();
 
     if (!companyId) {
       setLoading(false);
@@ -51,8 +27,6 @@ export function CompanyDetailPage() {
       active = false;
     };
   }, [companyId]);
-
-  const inWatchlist = companyId ? watchlistIds.includes(companyId) : false;
 
   if (loading) {
     return <div className="page-shell">Loading company…</div>;
@@ -74,28 +48,6 @@ export function CompanyDetailPage() {
           <span>Status</span>
           <strong>{company.status}</strong>
           <span>{company._count.memos} research memos</span>
-          <button
-            type="button"
-            className="ghost-button"
-            onClick={async () => {
-              if (!companyId) return;
-
-              if (token) {
-                if (inWatchlist) {
-                  await removeCompanyFromPersistentWatchlist(token, companyId);
-                } else {
-                  await addCompanyToPersistentWatchlist(token, companyId);
-                }
-
-                setWatchlistIds(await fetchPersistentWatchlistCompanyIds(token));
-              } else {
-                toggleCompanyInWatchlist(companyId);
-                setWatchlistIds(getWatchlistCompanyIds());
-              }
-            }}
-          >
-            {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-          </button>
         </div>
       </section>
 

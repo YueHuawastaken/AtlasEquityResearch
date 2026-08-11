@@ -51,13 +51,15 @@ export function createServer() {
   app.get("/api/home", async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const [companyCount, memoCount, latestCompany, latestMemo] = await Promise.all([
-        prisma.company.count(),
-        prisma.investmentMemo.count(),
+        prisma.company.count({ where: { status: "published" } }),
+        prisma.investmentMemo.count({ where: { status: "published" } }),
         prisma.company.findFirst({
+          where: { status: "published" },
           orderBy: { createdAt: "desc" },
           select: { id: true, name: true, ticker: true, sector: true, industry: true }
         }),
         prisma.investmentMemo.findFirst({
+          where: { status: "published" },
           orderBy: { createdAt: "desc" },
           select: {
             id: true,
@@ -71,7 +73,7 @@ export function createServer() {
 
       res.json({
         stats: [
-          { label: "Coverage", value: String(companyCount), detail: "Companies modeled" },
+          { label: "Companies", value: String(companyCount), detail: "Companies covered" },
           { label: "Memos", value: String(memoCount), detail: "Published research notes" },
           { label: "Reports", value: "0", detail: "Industry and market views" },
           { label: "Downloads", value: "0", detail: "Files shared with users" }

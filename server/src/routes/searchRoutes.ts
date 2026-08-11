@@ -14,6 +14,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
     const [companies, memos, reports, outlooks, journals] = await Promise.all([
       prisma.company.findMany({
         where: {
+          status: "published",
           OR: [
             { name: { contains: query, mode: "insensitive" } },
             { ticker: { contains: query, mode: "insensitive" } },
@@ -25,6 +26,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
       }),
       prisma.investmentMemo.findMany({
         where: {
+          status: "published",
           OR: [
             { title: { contains: query, mode: "insensitive" } },
             { slug: { contains: query, mode: "insensitive" } },
@@ -36,6 +38,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
       }),
       prisma.industryReport.findMany({
         where: {
+          status: "published",
           OR: [
             { title: { contains: query, mode: "insensitive" } },
             { slug: { contains: query, mode: "insensitive" } },
@@ -47,6 +50,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
       }),
       prisma.marketOutlook.findMany({
         where: {
+          status: "published",
           OR: [
             { title: { contains: query, mode: "insensitive" } },
             { slug: { contains: query, mode: "insensitive" } },
@@ -58,6 +62,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
       }),
       prisma.researchJournal.findMany({
         where: {
+          status: "published",
           OR: [
             { title: { contains: query, mode: "insensitive" } },
             { slug: { contains: query, mode: "insensitive" } },

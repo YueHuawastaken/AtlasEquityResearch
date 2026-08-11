@@ -156,6 +156,15 @@ export function AdminDashboardPage() {
   const [editingIndustryReportId, setEditingIndustryReportId] = useState<string | null>(null);
   const [editingMarketOutlookId, setEditingMarketOutlookId] = useState<string | null>(null);
   const [editingResearchJournalId, setEditingResearchJournalId] = useState<string | null>(null);
+  const [memoValidationError, setMemoValidationError] = useState<string | null>(null);
+  const [companyRefreshKey, setCompanyRefreshKey] = useState(0);
+
+  const refreshCompanies = async (authToken: string) => {
+    const refreshed = await fetchAdminCompanies(authToken);
+    setCompanies(refreshed);
+    setCompanyRefreshKey((current) => current + 1);
+    return refreshed;
+  };
 
   useEffect(() => {
     if (!token) {
@@ -248,8 +257,7 @@ export function AdminDashboardPage() {
       await updateCompany(token, editingCompanyId, payload);
     }
 
-    const refreshed = await fetchAdminCompanies(token);
-    setCompanies(refreshed);
+    await refreshCompanies(token);
     setCompanyForm(emptyCompany);
     setCompanyMode("create");
     setEditingCompanyId(null);
@@ -258,6 +266,31 @@ export function AdminDashboardPage() {
   const submitMemo = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!token) return;
+
+    const errors: string[] = [];
+
+    if (memoForm.targetPrice <= 0) {
+      errors.push("Target price must be greater than 0.");
+    }
+
+    if (memoForm.currentPrice <= 0) {
+      errors.push("Current price must be greater than 0.");
+    }
+
+    if (memoForm.executiveSummary.trim().length < 20) {
+      errors.push("Executive summary must be at least 20 characters.");
+    }
+
+    if (memoForm.thesis.trim().length < 20) {
+      errors.push("Thesis must be at least 20 characters.");
+    }
+
+    if (errors.length) {
+      setMemoValidationError(errors.join(" "));
+      return;
+    }
+
+    setMemoValidationError(null);
 
     const payload: MemoPayload = {
       ...memoForm,
@@ -405,7 +438,7 @@ export function AdminDashboardPage() {
                     description: company.description ?? "",
                     status: company.status
                   }); setEditingCompanyId(company.id); }}>Edit</button>
-                  <button type="button" className="danger-button" onClick={async () => { if (!token) return; await deleteCompany(token, company.id); setCompanies(await fetchAdminCompanies(token)); }}>Delete</button>
+                  <button type="button" className="danger-button" onClick={async () => { if (!token) return; await deleteCompany(token, company.id); await refreshCompanies(token); }}>Delete</button>
                 </div>
               </article>
             ))}
@@ -438,16 +471,17 @@ export function AdminDashboardPage() {
               <option value="sell">Sell</option>
             </select>
             <div className="inline-grid">
-              <input type="number" step="0.01" placeholder="Target Price" value={memoForm.targetPrice} onChange={(event) => setMemoForm({ ...memoForm, targetPrice: Number(event.target.value) })} />
-              <input type="number" step="0.01" placeholder="Current Price" value={memoForm.currentPrice} onChange={(event) => setMemoForm({ ...memoForm, currentPrice: Number(event.target.value) })} />
+              <input type="number" step="0.01" min="0.01" placeholder="Target Price" value={memoForm.targetPrice} onChange={(event) => setMemoForm({ ...memoForm, targetPrice: Number(event.target.value) })} required />
+              <input type="number" step="0.01" min="0.01" placeholder="Current Price" value={memoForm.currentPrice} onChange={(event) => setMemoForm({ ...memoForm, currentPrice: Number(event.target.value) })} required />
             </div>
             <div className="inline-grid">
               <input type="number" step="0.01" placeholder="Expected Return" value={memoForm.expectedReturn} onChange={(event) => setMemoForm({ ...memoForm, expectedReturn: Number(event.target.value) })} />
               <input type="number" min={1} max={10} placeholder="Conviction" value={memoForm.convictionLevel} onChange={(event) => setMemoForm({ ...memoForm, convictionLevel: Number(event.target.value) })} />
             </div>
             <input placeholder="Investment Horizon" value={memoForm.investmentHorizon} onChange={(event) => setMemoForm({ ...memoForm, investmentHorizon: event.target.value })} />
-            <textarea placeholder="Executive Summary" value={memoForm.executiveSummary} onChange={(event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value })} rows={5} />
-            <textarea placeholder="Thesis" value={memoForm.thesis} onChange={(event) => setMemoForm({ ...memoForm, thesis: event.target.value })} rows={6} />
+            <textarea placeholder="Executive Summary" value={memoForm.executiveSummary} onChange={(event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value })} rows={5} minLength={20} required />
+            <textarea placeholder="Thesis" value={memoForm.thesis} onChange={(event) => setMemoForm({ ...memoForm, thesis: event.target.value })} rows={6} minLength={20} required />
+            {memoValidationError ? <p className="auth-error">{memoValidationError}</p> : null}
             <select value={memoForm.status} onChange={(event) => setMemoForm({ ...memoForm, status: event.target.value })}>
               <option value="draft">Draft</option>
               <option value="published">Published</option>
@@ -490,9 +524,9 @@ export function AdminDashboardPage() {
       </section>
 
       <section className="admin-content-grid">
-        <IndustryReportsAdminPanel />
-        <MarketOutlooksAdminPanel />
-        <ResearchJournalAdminPanel />
+        <IndustryReportsAdminPanel companyRefreshKey={companyRefreshKey} />
+        <MarketOutlooksAdminPanel companyRefreshKey={companyRefreshKey} />
+        <ResearchJournalAdminPanel companyRefreshKey={companyRefreshKey} />
       </section>
 
       <section>

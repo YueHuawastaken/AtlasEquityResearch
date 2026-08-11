@@ -16,7 +16,6 @@ export function CompaniesPage() {
     void fetchCompanies({
       search: searchParams.get("search") ?? undefined,
       sector: searchParams.get("sector") ?? undefined,
-      status: searchParams.get("status") ?? undefined,
       page: searchParams.get("page") ?? undefined,
       pageSize: searchParams.get("pageSize") ?? undefined
     })
@@ -47,7 +46,7 @@ export function CompaniesPage() {
     <div className="page-shell">
       <section className="section-header">
         <div>
-          <p className="eyebrow">Coverage</p>
+          <p className="eyebrow">Companies</p>
           <h1>Companies</h1>
           <p className="muted">Search the company universe that anchors all research, memos, and valuation work.</p>
         </div>
@@ -71,7 +70,6 @@ export function CompaniesPage() {
                   <th>Sector</th>
                   <th>Industry</th>
                   <th>Memos</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -87,7 +85,6 @@ export function CompaniesPage() {
                     <td>{company.sector}</td>
                     <td>{company.industry}</td>
                     <td>{company._count.memos}</td>
-                    <td>{company.status}</td>
                   </tr>
                 ))}
               </tbody>

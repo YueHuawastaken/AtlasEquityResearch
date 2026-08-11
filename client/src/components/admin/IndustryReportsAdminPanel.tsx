@@ -37,7 +37,11 @@ const emptyForm: IndustryReportPayload = {
   publishedAt: null
 };
 
-export function IndustryReportsAdminPanel() {
+interface IndustryReportsAdminPanelProps {
+  companyRefreshKey?: number;
+}
+
+export function IndustryReportsAdminPanel({ companyRefreshKey = 0 }: IndustryReportsAdminPanelProps) {
   const token = localStorage.getItem("atlas-admin-token");
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [items, setItems] = useState<AdminIndustryReport[]>([]);
@@ -62,7 +66,7 @@ export function IndustryReportsAdminPanel() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, companyRefreshKey]);
 
   if (!token) {
     return null;

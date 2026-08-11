@@ -30,7 +30,6 @@ model User {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   authoredMemos    InvestmentMemo[]  @relation("MemoAuthor")
-  watchlistEntries WatchlistItem[]
   industryReports  IndustryReport[]
   marketOutlooks   MarketOutlook[]
   researchJournals ResearchJournal[]
@@ -51,20 +50,7 @@ model Company {
   reports          IndustryReport[]
   outlooks         MarketOutlook[]
   journalEntries   ResearchJournal[]
-  watchlistEntries WatchlistItem[]
   attachments      Attachment[]
-}
-
-model WatchlistItem {
-  id        String   @id @default(cuid())
-  userId    String
-  companyId String
-  createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, companyId])
 }
 
 model InvestmentMemo {

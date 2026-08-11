@@ -24,7 +24,11 @@ const emptyForm: ResearchJournalPayload = {
   publishedAt: null
 };
 
-export function ResearchJournalAdminPanel() {
+interface ResearchJournalAdminPanelProps {
+  companyRefreshKey?: number;
+}
+
+export function ResearchJournalAdminPanel({ companyRefreshKey = 0 }: ResearchJournalAdminPanelProps) {
   const token = localStorage.getItem("atlas-admin-token");
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [items, setItems] = useState<AdminResearchJournal[]>([]);
@@ -49,7 +53,7 @@ export function ResearchJournalAdminPanel() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, companyRefreshKey]);
 
   if (!token) {
     return null;

@@ -1,6 +1,5 @@
 import { type NextFunction, type Request, type Response, Router } from "express";
 import { prisma } from "../config/prisma.js";
-import { normalizeEntityStatus } from "../utils/filters.js";
 import { parsePagination } from "../utils/pagination.js";
 
 export const marketOutlookRouter = Router();
@@ -9,10 +8,10 @@ marketOutlookRouter.get("/", async (req: Request, res: Response, next: NextFunct
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
     const companyId = typeof req.query.companyId === "string" ? req.query.companyId.trim() : "";
-    const status = normalizeEntityStatus(typeof req.query.status === "string" ? req.query.status : null);
     const { page, pageSize } = parsePagination(new URLSearchParams(req.query as Record<string, string>));
 
     const where = {
+      status: "published" as const,
       ...(search
         ? {
             OR: [
@@ -22,8 +21,7 @@ marketOutlookRouter.get("/", async (req: Request, res: Response, next: NextFunct
             ]
           }
         : {}),
-      ...(companyId ? { companyId } : {}),
-      ...(status ? { status } : {})
+      ...(companyId ? { companyId } : {})
     };
 
     const [total, items] = await Promise.all([
@@ -54,8 +52,8 @@ marketOutlookRouter.get("/", async (req: Request, res: Response, next: NextFunct
 
 marketOutlookRouter.get("/:outlookId", async (req: Request<{ outlookId: string }>, res: Response, next: NextFunction) => {
   try {
-    const item = await prisma.marketOutlook.findUnique({
-      where: { id: req.params.outlookId },
+    const item = await prisma.marketOutlook.findFirst({
+      where: { id: req.params.outlookId, status: "published" },
       include: {
         company: true,
         author: { select: { id: true, name: true, email: true } },

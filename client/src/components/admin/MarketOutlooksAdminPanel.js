@@ -29,7 +29,7 @@ const emptyForm = {
     status: "draft",
     publishedAt: null
 };
-export function MarketOutlooksAdminPanel() {
+export function MarketOutlooksAdminPanel({ companyRefreshKey = 0 }) {
     const token = localStorage.getItem("atlas-admin-token");
     const [companies, setCompanies] = useState([]);
     const [items, setItems] = useState([]);
@@ -52,7 +52,7 @@ export function MarketOutlooksAdminPanel() {
         return () => {
             active = false;
         };
-    }, [token]);
+    }, [token, companyRefreshKey]);
     if (!token) {
         return null;
     }

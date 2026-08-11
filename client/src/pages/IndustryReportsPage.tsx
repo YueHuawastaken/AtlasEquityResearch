@@ -27,7 +27,7 @@ export function IndustryReportsPage() {
     let active = true;
     setLoading(true);
 
-    void fetchIndustryReports({ search: searchParams.get("search") ?? undefined, companyId: searchParams.get("companyId") ?? undefined, status: searchParams.get("status") ?? undefined })
+    void fetchIndustryReports({ search: searchParams.get("search") ?? undefined, companyId: searchParams.get("companyId") ?? undefined })
       .then((response) => {
         if (active) setItems(response.items);
       })
@@ -75,12 +75,6 @@ export function IndustryReportsPage() {
               <option key={company.id} value={company.id}>{company.name} ({company.ticker})</option>
             ))}
           </select>
-          <select value={searchParams.get("status") ?? ""} onChange={(event) => updateFilter("status", event.target.value)}>
-            <option value="">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
           <button type="button" className="ghost-button" onClick={() => { setQuery(""); setSearchParams(new URLSearchParams()); }}>Clear Filters</button>
         </div>
       </section>
@@ -91,7 +85,7 @@ export function IndustryReportsPage() {
             {items.map((item) => (
               <Link key={item.id} to={`/industry-research/${item.id}`} className="stack-row">
                 <strong>{item.title}</strong>
-                <span>{item.company ? `${item.company.name} (${item.company.ticker}) · ` : ""}{item.status}</span>
+                <span>{item.company ? `${item.company.name} (${item.company.ticker})` : "Industry report"}</span>
                 <p className="muted">{item.executiveSummary}</p>
               </Link>
             ))}

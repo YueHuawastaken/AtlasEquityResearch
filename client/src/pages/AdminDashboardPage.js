@@ -116,6 +116,14 @@ export function AdminDashboardPage() {
     const [editingIndustryReportId, setEditingIndustryReportId] = useState(null);
     const [editingMarketOutlookId, setEditingMarketOutlookId] = useState(null);
     const [editingResearchJournalId, setEditingResearchJournalId] = useState(null);
+    const [memoValidationError, setMemoValidationError] = useState(null);
+    const [companyRefreshKey, setCompanyRefreshKey] = useState(0);
+    const refreshCompanies = async (authToken) => {
+        const refreshed = await fetchAdminCompanies(authToken);
+        setCompanies(refreshed);
+        setCompanyRefreshKey((current) => current + 1);
+        return refreshed;
+    };
     useEffect(() => {
         if (!token) {
             setMeLoaded(true);
@@ -201,8 +209,7 @@ export function AdminDashboardPage() {
         else if (editingCompanyId) {
             await updateCompany(token, editingCompanyId, payload);
         }
-        const refreshed = await fetchAdminCompanies(token);
-        setCompanies(refreshed);
+        await refreshCompanies(token);
         setCompanyForm(emptyCompany);
         setCompanyMode("create");
         setEditingCompanyId(null);
@@ -211,6 +218,24 @@ export function AdminDashboardPage() {
         event.preventDefault();
         if (!token)
             return;
+        const errors = [];
+        if (memoForm.targetPrice <= 0) {
+            errors.push("Target price must be greater than 0.");
+        }
+        if (memoForm.currentPrice <= 0) {
+            errors.push("Current price must be greater than 0.");
+        }
+        if (memoForm.executiveSummary.trim().length < 20) {
+            errors.push("Executive summary must be at least 20 characters.");
+        }
+        if (memoForm.thesis.trim().length < 20) {
+            errors.push("Thesis must be at least 20 characters.");
+        }
+        if (errors.length) {
+            setMemoValidationError(errors.join(" "));
+            return;
+        }
+        setMemoValidationError(null);
         const payload = {
             ...memoForm,
             authorId: memoForm.authorId?.trim() ? memoForm.authorId : null,
@@ -301,7 +326,7 @@ export function AdminDashboardPage() {
                                                         });
                                                         setEditingCompanyId(company.id);
                                                     }, children: "Edit" }), _jsx("button", { type: "button", className: "danger-button", onClick: async () => { if (!token)
-                                                        return; await deleteCompany(token, company.id); setCompanies(await fetchAdminCompanies(token)); }, children: "Delete" })] })] }, company.id))) })] }), _jsxs("article", { className: "card admin-panel", children: [_jsxs("div", { className: "panel-heading", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Memo" }), _jsx("h2", { children: memoMode === "create" ? "Create Memo" : "Edit Memo" })] }), _jsx("button", { type: "button", className: "ghost-button", onClick: () => { setMemoMode("create"); setMemoForm({ ...emptyMemo, companyId: companies[0]?.id ?? "" }); }, children: "Reset" })] }), _jsxs("form", { className: "admin-form", onSubmit: submitMemo, children: [_jsxs("select", { value: memoForm.companyId, onChange: (event) => setMemoForm({ ...memoForm, companyId: event.target.value }), required: true, children: [_jsx("option", { value: "", children: "Select company" }), companies.map((company) => (_jsxs("option", { value: company.id, children: [company.name, " (", company.ticker, ")"] }, company.id)))] }), _jsx("input", { placeholder: "Title", value: memoForm.title, onChange: (event) => setMemoForm({ ...memoForm, title: event.target.value }), required: true }), _jsx("input", { placeholder: "Slug", value: memoForm.slug, onChange: (event) => setMemoForm({ ...memoForm, slug: event.target.value }), required: true }), _jsxs("select", { value: memoForm.recommendation, onChange: (event) => setMemoForm({ ...memoForm, recommendation: event.target.value }), children: [_jsx("option", { value: "buy", children: "Buy" }), _jsx("option", { value: "overweight", children: "Overweight" }), _jsx("option", { value: "hold", children: "Hold" }), _jsx("option", { value: "underweight", children: "Underweight" }), _jsx("option", { value: "sell", children: "Sell" })] }), _jsxs("div", { className: "inline-grid", children: [_jsx("input", { type: "number", step: "0.01", placeholder: "Target Price", value: memoForm.targetPrice, onChange: (event) => setMemoForm({ ...memoForm, targetPrice: Number(event.target.value) }) }), _jsx("input", { type: "number", step: "0.01", placeholder: "Current Price", value: memoForm.currentPrice, onChange: (event) => setMemoForm({ ...memoForm, currentPrice: Number(event.target.value) }) })] }), _jsxs("div", { className: "inline-grid", children: [_jsx("input", { type: "number", step: "0.01", placeholder: "Expected Return", value: memoForm.expectedReturn, onChange: (event) => setMemoForm({ ...memoForm, expectedReturn: Number(event.target.value) }) }), _jsx("input", { type: "number", min: 1, max: 10, placeholder: "Conviction", value: memoForm.convictionLevel, onChange: (event) => setMemoForm({ ...memoForm, convictionLevel: Number(event.target.value) }) })] }), _jsx("input", { placeholder: "Investment Horizon", value: memoForm.investmentHorizon, onChange: (event) => setMemoForm({ ...memoForm, investmentHorizon: event.target.value }) }), _jsx("textarea", { placeholder: "Executive Summary", value: memoForm.executiveSummary, onChange: (event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value }), rows: 5 }), _jsx("textarea", { placeholder: "Thesis", value: memoForm.thesis, onChange: (event) => setMemoForm({ ...memoForm, thesis: event.target.value }), rows: 6 }), _jsxs("select", { value: memoForm.status, onChange: (event) => setMemoForm({ ...memoForm, status: event.target.value }), children: [_jsx("option", { value: "draft", children: "Draft" }), _jsx("option", { value: "published", children: "Published" }), _jsx("option", { value: "archived", children: "Archived" })] }), _jsx("input", { placeholder: "Published At (ISO optional)", value: memoForm.publishedAt ?? "", onChange: (event) => setMemoForm({ ...memoForm, publishedAt: event.target.value }) }), _jsx("button", { type: "submit", children: "Save Memo" })] }), _jsx("div", { className: "admin-list", children: memos.map((memo) => (_jsxs("article", { className: "admin-list-item", children: [_jsxs("div", { children: [_jsx("strong", { children: memo.title }), _jsxs("span", { children: [memo.company.name, " \u00B7 ", memo.recommendation, " \u00B7 ", memo.status] })] }), _jsxs("div", { className: "inline-actions", children: [_jsx("button", { type: "button", className: "ghost-button", onClick: () => {
+                                                        return; await deleteCompany(token, company.id); await refreshCompanies(token); }, children: "Delete" })] })] }, company.id))) })] }), _jsxs("article", { className: "card admin-panel", children: [_jsxs("div", { className: "panel-heading", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Memo" }), _jsx("h2", { children: memoMode === "create" ? "Create Memo" : "Edit Memo" })] }), _jsx("button", { type: "button", className: "ghost-button", onClick: () => { setMemoMode("create"); setMemoForm({ ...emptyMemo, companyId: companies[0]?.id ?? "" }); }, children: "Reset" })] }), _jsxs("form", { className: "admin-form", onSubmit: submitMemo, children: [_jsxs("select", { value: memoForm.companyId, onChange: (event) => setMemoForm({ ...memoForm, companyId: event.target.value }), required: true, children: [_jsx("option", { value: "", children: "Select company" }), companies.map((company) => (_jsxs("option", { value: company.id, children: [company.name, " (", company.ticker, ")"] }, company.id)))] }), _jsx("input", { placeholder: "Title", value: memoForm.title, onChange: (event) => setMemoForm({ ...memoForm, title: event.target.value }), required: true }), _jsx("input", { placeholder: "Slug", value: memoForm.slug, onChange: (event) => setMemoForm({ ...memoForm, slug: event.target.value }), required: true }), _jsxs("select", { value: memoForm.recommendation, onChange: (event) => setMemoForm({ ...memoForm, recommendation: event.target.value }), children: [_jsx("option", { value: "buy", children: "Buy" }), _jsx("option", { value: "overweight", children: "Overweight" }), _jsx("option", { value: "hold", children: "Hold" }), _jsx("option", { value: "underweight", children: "Underweight" }), _jsx("option", { value: "sell", children: "Sell" })] }), _jsxs("div", { className: "inline-grid", children: [_jsx("input", { type: "number", step: "0.01", min: "0.01", placeholder: "Target Price", value: memoForm.targetPrice, onChange: (event) => setMemoForm({ ...memoForm, targetPrice: Number(event.target.value) }), required: true }), _jsx("input", { type: "number", step: "0.01", min: "0.01", placeholder: "Current Price", value: memoForm.currentPrice, onChange: (event) => setMemoForm({ ...memoForm, currentPrice: Number(event.target.value) }), required: true })] }), _jsxs("div", { className: "inline-grid", children: [_jsx("input", { type: "number", step: "0.01", placeholder: "Expected Return", value: memoForm.expectedReturn, onChange: (event) => setMemoForm({ ...memoForm, expectedReturn: Number(event.target.value) }) }), _jsx("input", { type: "number", min: 1, max: 10, placeholder: "Conviction", value: memoForm.convictionLevel, onChange: (event) => setMemoForm({ ...memoForm, convictionLevel: Number(event.target.value) }) })] }), _jsx("input", { placeholder: "Investment Horizon", value: memoForm.investmentHorizon, onChange: (event) => setMemoForm({ ...memoForm, investmentHorizon: event.target.value }) }), _jsx("textarea", { placeholder: "Executive Summary", value: memoForm.executiveSummary, onChange: (event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value }), rows: 5, minLength: 20, required: true }), _jsx("textarea", { placeholder: "Thesis", value: memoForm.thesis, onChange: (event) => setMemoForm({ ...memoForm, thesis: event.target.value }), rows: 6, minLength: 20, required: true }), memoValidationError ? _jsx("p", { className: "auth-error", children: memoValidationError }) : null, _jsxs("select", { value: memoForm.status, onChange: (event) => setMemoForm({ ...memoForm, status: event.target.value }), children: [_jsx("option", { value: "draft", children: "Draft" }), _jsx("option", { value: "published", children: "Published" }), _jsx("option", { value: "archived", children: "Archived" })] }), _jsx("input", { placeholder: "Published At (ISO optional)", value: memoForm.publishedAt ?? "", onChange: (event) => setMemoForm({ ...memoForm, publishedAt: event.target.value }) }), _jsx("button", { type: "submit", children: "Save Memo" })] }), _jsx("div", { className: "admin-list", children: memos.map((memo) => (_jsxs("article", { className: "admin-list-item", children: [_jsxs("div", { children: [_jsx("strong", { children: memo.title }), _jsxs("span", { children: [memo.company.name, " \u00B7 ", memo.recommendation, " \u00B7 ", memo.status] })] }), _jsxs("div", { className: "inline-actions", children: [_jsx("button", { type: "button", className: "ghost-button", onClick: () => {
                                                         setMemoMode("edit");
                                                         setMemoForm({
                                                             companyId: memo.companyId,
@@ -321,5 +346,5 @@ export function AdminDashboardPage() {
                                                         });
                                                         setEditingMemoId(memo.id);
                                                     }, children: "Edit" }), _jsx("button", { type: "button", className: "danger-button", onClick: async () => { if (!token)
-                                                        return; await deleteMemo(token, memo.id); setMemos(await fetchAdminMemos(token)); }, children: "Delete" })] })] }, memo.id))) })] })] }), _jsxs("section", { className: "admin-content-grid", children: [_jsx(IndustryReportsAdminPanel, {}), _jsx(MarketOutlooksAdminPanel, {}), _jsx(ResearchJournalAdminPanel, {})] }), _jsx("section", { children: _jsx(ContactMessagesAdminPanel, {}) })] }));
+                                                        return; await deleteMemo(token, memo.id); setMemos(await fetchAdminMemos(token)); }, children: "Delete" })] })] }, memo.id))) })] })] }), _jsxs("section", { className: "admin-content-grid", children: [_jsx(IndustryReportsAdminPanel, { companyRefreshKey: companyRefreshKey }), _jsx(MarketOutlooksAdminPanel, { companyRefreshKey: companyRefreshKey }), _jsx(ResearchJournalAdminPanel, { companyRefreshKey: companyRefreshKey })] }), _jsx("section", { children: _jsx(ContactMessagesAdminPanel, {}) })] }));
 }
