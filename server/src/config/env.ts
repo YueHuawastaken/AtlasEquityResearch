@@ -1,6 +1,11 @@
 import { config } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-config();
+const configDir = dirname(fileURLToPath(import.meta.url));
+const rootEnvPath = resolve(configDir, "../../../.env");
+
+config({ path: rootEnvPath });
 
 function parseCsv(value: string | undefined) {
   if (!value) return [];

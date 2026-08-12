@@ -11,7 +11,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
       return res.json({ items: [] });
     }
 
-    const [companies, memos, reports, outlooks, journals] = await Promise.all([
+    const [companies, memos, reports, outlooks, valuationModels] = await Promise.all([
       prisma.company.findMany({
         where: {
           status: "published",
@@ -60,14 +60,13 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
         take: 5,
         select: { id: true, title: true, slug: true, status: true, publishedAt: true, company: { select: { name: true, ticker: true } } }
       }),
-      prisma.researchJournal.findMany({
+      prisma.valuationModel.findMany({
         where: {
           status: "published",
           OR: [
             { title: { contains: query, mode: "insensitive" } },
             { slug: { contains: query, mode: "insensitive" } },
-            { body: { contains: query, mode: "insensitive" } },
-            { reflections: { contains: query, mode: "insensitive" } }
+            { valuationConclusion: { contains: query, mode: "insensitive" } }
           ]
         },
         take: 5,
@@ -81,7 +80,7 @@ searchRouter.get("/", async (req: Request, res: Response, next: NextFunction) =>
         ...memos.map((item: (typeof memos)[number]) => ({ id: item.id, type: "memo" as const, title: item.title, subtitle: `${item.company.name} (${item.company.ticker})`, slug: item.slug, status: item.status, publishedAt: item.publishedAt?.toISOString() ?? null })),
         ...reports.map((item: (typeof reports)[number]) => ({ id: item.id, type: "industry-report" as const, title: item.title, subtitle: item.company ? `${item.company.name} (${item.company.ticker})` : "Industry report", slug: item.slug, status: item.status, publishedAt: item.publishedAt?.toISOString() ?? null })),
         ...outlooks.map((item: (typeof outlooks)[number]) => ({ id: item.id, type: "market-outlook" as const, title: item.title, subtitle: item.company ? `${item.company.name} (${item.company.ticker})` : item.slug, slug: item.slug, status: item.status, publishedAt: item.publishedAt?.toISOString() ?? null })),
-        ...journals.map((item: (typeof journals)[number]) => ({ id: item.id, type: "research-journal" as const, title: item.title, subtitle: item.company ? `${item.company.name} (${item.company.ticker})` : item.slug, slug: item.slug, status: item.status, publishedAt: item.publishedAt?.toISOString() ?? null }))
+        ...valuationModels.map((item: (typeof valuationModels)[number]) => ({ id: item.id, type: "valuation-model" as const, title: item.title, subtitle: item.company ? `${item.company.name} (${item.company.ticker})` : item.slug, slug: item.slug, status: item.status, publishedAt: item.publishedAt?.toISOString() ?? null }))
       ]
     });
   } catch (error) {

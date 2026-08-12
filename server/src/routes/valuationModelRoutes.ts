@@ -2,9 +2,9 @@ import { type NextFunction, type Request, type Response, Router } from "express"
 import { prisma } from "../config/prisma.js";
 import { parsePagination } from "../utils/pagination.js";
 
-export const researchJournalRouter = Router();
+export const valuationModelRouter = Router();
 
-researchJournalRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
+valuationModelRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
     const companyId = typeof req.query.companyId === "string" ? req.query.companyId.trim() : "";
@@ -17,8 +17,7 @@ researchJournalRouter.get("/", async (req: Request, res: Response, next: NextFun
             OR: [
               { title: { contains: search, mode: "insensitive" as const } },
               { slug: { contains: search, mode: "insensitive" as const } },
-              { body: { contains: search, mode: "insensitive" as const } },
-              { reflections: { contains: search, mode: "insensitive" as const } }
+              { valuationConclusion: { contains: search, mode: "insensitive" as const } }
             ]
           }
         : {}),
@@ -26,8 +25,8 @@ researchJournalRouter.get("/", async (req: Request, res: Response, next: NextFun
     };
 
     const [total, items] = await Promise.all([
-      prisma.researchJournal.count({ where }),
-      prisma.researchJournal.findMany({
+      prisma.valuationModel.count({ where }),
+      prisma.valuationModel.findMany({
         where,
         orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
         skip: (page - 1) * pageSize,
@@ -36,7 +35,9 @@ researchJournalRouter.get("/", async (req: Request, res: Response, next: NextFun
           id: true,
           title: true,
           slug: true,
-          prompt: true,
+          currentSharePrice: true,
+          fairValue: true,
+          upsideDownside: true,
           status: true,
           publishedAt: true,
           company: { select: { id: true, name: true, ticker: true } }
@@ -50,10 +51,10 @@ researchJournalRouter.get("/", async (req: Request, res: Response, next: NextFun
   }
 });
 
-researchJournalRouter.get("/:journalId", async (req: Request<{ journalId: string }>, res: Response, next: NextFunction) => {
+valuationModelRouter.get("/:valuationModelId", async (req: Request<{ valuationModelId: string }>, res: Response, next: NextFunction) => {
   try {
-    const item = await prisma.researchJournal.findFirst({
-      where: { id: req.params.journalId, status: "published" },
+    const item = await prisma.valuationModel.findFirst({
+      where: { id: req.params.valuationModelId, status: "published" },
       include: {
         company: true,
         author: { select: { id: true, name: true, email: true } },
@@ -62,7 +63,7 @@ researchJournalRouter.get("/:journalId", async (req: Request<{ journalId: string
     });
 
     if (!item) {
-      return res.status(404).json({ message: "Research journal not found" });
+      return res.status(404).json({ message: "Valuation model not found" });
     }
 
     res.json({ item });

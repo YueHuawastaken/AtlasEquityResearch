@@ -62,6 +62,14 @@ companyRouter.get("/:companyId", async (req, res, next) => {
     const company = await prisma.company.findFirst({
       where: { id: req.params.companyId, status: "published" },
       include: {
+        _count: {
+          select: {
+            memos: true,
+            reports: true,
+            outlooks: true,
+            valuationModels: true
+          }
+        },
         memos: {
           where: { status: "published" },
           orderBy: { createdAt: "desc" },
@@ -70,6 +78,49 @@ companyRouter.get("/:companyId", async (req, res, next) => {
             title: true,
             slug: true,
             recommendation: true,
+            status: true,
+            publishedAt: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
+        reports: {
+          where: { status: "published" },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
+            publishedAt: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
+        outlooks: {
+          where: { status: "published" },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            month: true,
+            status: true,
+            publishedAt: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
+        valuationModels: {
+          where: { status: "published" },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            fairValue: true,
+            currentSharePrice: true,
+            upsideDownside: true,
             status: true,
             publishedAt: true,
             createdAt: true,

@@ -8,7 +8,7 @@ import { deleteFromCloudinary, isCloudinaryReady, uploadBufferToCloudinary } fro
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 
-type AttachmentScope = "company" | "memo" | "industryReport" | "marketOutlook" | "researchJournal";
+type AttachmentScope = "company" | "memo" | "industryReport" | "marketOutlook" | "valuationModel";
 
 function resolveScopeField(scope: AttachmentScope) {
   switch (scope) {
@@ -20,8 +20,8 @@ function resolveScopeField(scope: AttachmentScope) {
       return "industryReportId";
     case "marketOutlook":
       return "marketOutlookId";
-    case "researchJournal":
-      return "researchJournalId";
+    case "valuationModel":
+      return "valuationModelId";
   }
 }
 
@@ -31,7 +31,7 @@ function resolveScopeWhere(scope: AttachmentScope, parentId: string) {
 }
 
 function isAttachmentScope(value: unknown): value is AttachmentScope {
-  return value === "company" || value === "memo" || value === "industryReport" || value === "marketOutlook" || value === "researchJournal";
+  return value === "company" || value === "memo" || value === "industryReport" || value === "marketOutlook" || value === "valuationModel";
 }
 
 export const adminAttachmentRouter = Router();
@@ -103,7 +103,7 @@ adminAttachmentRouter.post("/", upload.single("file"), async (req: any, res: any
       ...(resolveScopeField(scope) === "memoId" ? { memoId: parentId } : {}),
       ...(resolveScopeField(scope) === "industryReportId" ? { industryReportId: parentId } : {}),
       ...(resolveScopeField(scope) === "marketOutlookId" ? { marketOutlookId: parentId } : {}),
-      ...(resolveScopeField(scope) === "researchJournalId" ? { researchJournalId: parentId } : {})
+      ...(resolveScopeField(scope) === "valuationModelId" ? { valuationModelId: parentId } : {})
     };
 
     const item = await prisma.attachment.create({ data });

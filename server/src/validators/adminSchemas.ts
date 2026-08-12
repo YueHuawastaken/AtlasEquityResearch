@@ -90,13 +90,24 @@ export const marketOutlookUpsertSchema = z.object({
   conclusion: z.string().min(1).max(10000)
 });
 
-export const researchJournalUpsertSchema = z.object({
+export const valuationModelUpsertSchema = z.object({
   ...contentBase,
   title: z.string().min(2).max(180),
   slug: z.string().min(2).max(200),
-  prompt: z.string().min(10).max(5000),
-  body: z.string().min(20).max(20000),
-  reflections: z.string().min(20).max(20000)
+  companyId: z.string().min(1),
+  currentSharePrice: z.coerce.number().positive(),
+  revenue: z.coerce.number(),
+  revenueGrowth: z.coerce.number(),
+  ebitdaOrEbit: z.coerce.number(),
+  freeCashFlow: z.coerce.number(),
+  wacc: z.coerce.number(),
+  terminalGrowthRate: z.coerce.number(),
+  enterpriseValue: z.coerce.number(),
+  equityValue: z.coerce.number(),
+  sharesOutstanding: z.coerce.number().positive(),
+  fairValue: z.coerce.number(),
+  upsideDownside: z.coerce.number(),
+  valuationConclusion: z.string().min(10).max(20000)
 });
 
 export const contactMessageStatusSchema = z.enum(["new", "in_review", "resolved", "spam"]);

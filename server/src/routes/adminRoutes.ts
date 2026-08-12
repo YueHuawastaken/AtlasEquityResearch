@@ -8,7 +8,7 @@ import {
   industryReportUpsertSchema,
   marketOutlookUpsertSchema,
   memoUpsertSchema,
-  researchJournalUpsertSchema
+  valuationModelUpsertSchema
 } from "../validators/adminSchemas.js";
 
 export const adminRouter = Router();
@@ -17,18 +17,18 @@ adminRouter.use(requireAuth, requireRole(["admin", "editor"]));
 
 adminRouter.get("/overview", async (_req, res, next) => {
   try {
-    const [companyCount, memoCount, reportCount, outlookCount, journalCount, draftCount, contactCount] = await Promise.all([
+    const [companyCount, memoCount, reportCount, outlookCount, valuationModelCount, draftCount, contactCount] = await Promise.all([
       prisma.company.count(),
       prisma.investmentMemo.count(),
       prisma.industryReport.count(),
       prisma.marketOutlook.count(),
-      prisma.researchJournal.count(),
+      prisma.valuationModel.count(),
       prisma.investmentMemo.count({ where: { status: "draft" } }),
       prisma.contactMessage.count()
     ]);
 
     res.json({
-      stats: { companyCount, memoCount, reportCount, outlookCount, journalCount, draftCount, contactCount }
+      stats: { companyCount, memoCount, reportCount, outlookCount, valuationModelCount, draftCount, contactCount }
     });
   } catch (error) {
     next(error);
@@ -367,9 +367,9 @@ adminRouter.delete("/market-outlooks/:outlookId", async (req, res, next) => {
   }
 });
 
-adminRouter.get("/research-journal", async (_req, res, next) => {
+adminRouter.get("/valuation-models", async (_req, res, next) => {
   try {
-    const items = await prisma.researchJournal.findMany({
+    const items = await prisma.valuationModel.findMany({
       orderBy: [{ updatedAt: "desc" }],
       include: { company: { select: { id: true, name: true, ticker: true } } }
     });
@@ -380,18 +380,17 @@ adminRouter.get("/research-journal", async (_req, res, next) => {
   }
 });
 
-adminRouter.post("/research-journal", async (req, res, next) => {
+adminRouter.post("/valuation-models", async (req, res, next) => {
   try {
-    const parsed = researchJournalUpsertSchema.safeParse(req.body);
+    const parsed = valuationModelUpsertSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      return res.status(400).json({ message: "Invalid research journal payload", issues: parsed.error.flatten() });
+      return res.status(400).json({ message: "Invalid valuation model payload", issues: parsed.error.flatten() });
     }
 
-    const item = await prisma.researchJournal.create({
+    const item = await prisma.valuationModel.create({
       data: {
         ...parsed.data,
-        companyId: parsed.data.companyId ?? null,
         authorId: parsed.data.authorId ?? null,
         publishedAt: parseCreatePublishedAt(parsed.data.status, parsed.data.publishedAt)
       }
@@ -403,19 +402,18 @@ adminRouter.post("/research-journal", async (req, res, next) => {
   }
 });
 
-adminRouter.patch("/research-journal/:journalId", async (req, res, next) => {
+adminRouter.patch("/valuation-models/:valuationModelId", async (req, res, next) => {
   try {
-    const parsed = researchJournalUpsertSchema.partial().safeParse(req.body);
+    const parsed = valuationModelUpsertSchema.partial().safeParse(req.body);
 
     if (!parsed.success) {
-      return res.status(400).json({ message: "Invalid research journal payload", issues: parsed.error.flatten() });
+      return res.status(400).json({ message: "Invalid valuation model payload", issues: parsed.error.flatten() });
     }
 
-    const item = await prisma.researchJournal.update({
-      where: { id: req.params.journalId },
+    const item = await prisma.valuationModel.update({
+      where: { id: req.params.valuationModelId },
       data: {
         ...parsed.data,
-        companyId: parsed.data.companyId === undefined ? undefined : parsed.data.companyId ?? null,
         authorId: parsed.data.authorId === undefined ? undefined : parsed.data.authorId ?? null,
         publishedAt: parsed.data.publishedAt === undefined ? undefined : parseNullablePublishedAt(parsed.data.publishedAt)
       }
@@ -427,9 +425,9 @@ adminRouter.patch("/research-journal/:journalId", async (req, res, next) => {
   }
 });
 
-adminRouter.delete("/research-journal/:journalId", async (req, res, next) => {
+adminRouter.delete("/valuation-models/:valuationModelId", async (req, res, next) => {
   try {
-    await prisma.researchJournal.delete({ where: { id: req.params.journalId } });
+    await prisma.valuationModel.delete({ where: { id: req.params.valuationModelId } });
     res.status(204).send();
   } catch (error) {
     next(error);
