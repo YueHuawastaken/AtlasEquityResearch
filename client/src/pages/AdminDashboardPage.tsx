@@ -2,41 +2,35 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { IndustryReportsAdminPanel } from "../components/admin/IndustryReportsAdminPanel.js";
 import { MarketOutlooksAdminPanel } from "../components/admin/MarketOutlooksAdminPanel.js";
-import { ResearchJournalAdminPanel } from "../components/admin/ResearchJournalAdminPanel.js";
+import { ValuationModelsAdminPanel } from "../components/admin/ValuationModelsAdminPanel.js";
 import { ContactMessagesAdminPanel } from "../components/admin/ContactMessagesAdminPanel.js";
 import {
   createCompany,
   createIndustryReport,
   createMarketOutlook,
-  createResearchJournal,
   createMemo,
   deleteCompany,
   deleteIndustryReport,
   deleteMarketOutlook,
-  deleteResearchJournal,
   deleteMemo,
   fetchAdminCompanies,
   fetchAdminIndustryReports,
   fetchAdminMarketOutlooks,
-  fetchAdminResearchJournal,
   fetchAdminMemos,
   fetchAdminMe,
   fetchOverview,
   updateIndustryReport,
   updateMarketOutlook,
-  updateResearchJournal,
   updateCompany,
   updateMemo,
   type AdminCompany,
   type AdminIndustryReport,
   type AdminMarketOutlook,
-  type AdminResearchJournal,
   type AdminMemo,
   type CompanyPayload,
   type IndustryReportPayload,
   type MarketOutlookPayload,
-  type MemoPayload,
-  type ResearchJournalPayload
+  type MemoPayload
 } from "../services/adminApi.js";
 
 type Mode = "create" | "edit";
@@ -120,42 +114,27 @@ const emptyMarketOutlook: MarketOutlookPayload = {
   publishedAt: null
 };
 
-const emptyResearchJournal: ResearchJournalPayload = {
-  companyId: null,
-  title: "",
-  slug: "",
-  prompt: "",
-  body: "",
-  reflections: "",
-  status: "draft",
-  publishedAt: null
-};
-
 export function AdminDashboardPage() {
   const token = localStorage.getItem("atlas-admin-token");
   const [meLoaded, setMeLoaded] = useState(false);
   const [allowed, setAllowed] = useState(false);
-  const [overview, setOverview] = useState({ companyCount: 0, memoCount: 0, reportCount: 0, outlookCount: 0, journalCount: 0, draftCount: 0, contactCount: 0 });
+  const [overview, setOverview] = useState({ companyCount: 0, memoCount: 0, reportCount: 0, outlookCount: 0, valuationModelCount: 0, draftCount: 0, contactCount: 0 });
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [memos, setMemos] = useState<AdminMemo[]>([]);
   const [industryReports, setIndustryReports] = useState<AdminIndustryReport[]>([]);
   const [marketOutlooks, setMarketOutlooks] = useState<AdminMarketOutlook[]>([]);
-  const [journalEntries, setJournalEntries] = useState<AdminResearchJournal[]>([]);
   const [companyForm, setCompanyForm] = useState<CompanyPayload>(emptyCompany);
   const [memoForm, setMemoForm] = useState<MemoPayload>(emptyMemo);
   const [industryReportForm, setIndustryReportForm] = useState<IndustryReportPayload>(emptyIndustryReport);
   const [marketOutlookForm, setMarketOutlookForm] = useState<MarketOutlookPayload>(emptyMarketOutlook);
-  const [researchJournalForm, setResearchJournalForm] = useState<ResearchJournalPayload>(emptyResearchJournal);
   const [companyMode, setCompanyMode] = useState<Mode>("create");
   const [memoMode, setMemoMode] = useState<Mode>("create");
   const [industryReportMode, setIndustryReportMode] = useState<Mode>("create");
   const [marketOutlookMode, setMarketOutlookMode] = useState<Mode>("create");
-  const [researchJournalMode, setResearchJournalMode] = useState<Mode>("create");
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
   const [editingIndustryReportId, setEditingIndustryReportId] = useState<string | null>(null);
   const [editingMarketOutlookId, setEditingMarketOutlookId] = useState<string | null>(null);
-  const [editingResearchJournalId, setEditingResearchJournalId] = useState<string | null>(null);
   const [memoValidationError, setMemoValidationError] = useState<string | null>(null);
   const [companyRefreshKey, setCompanyRefreshKey] = useState(0);
 
@@ -200,17 +179,15 @@ export function AdminDashboardPage() {
       fetchAdminCompanies(token),
       fetchAdminMemos(token),
       fetchAdminIndustryReports(token),
-      fetchAdminMarketOutlooks(token),
-      fetchAdminResearchJournal(token)
+      fetchAdminMarketOutlooks(token)
     ])
-      .then(([overviewData, companyItems, memoItems, reportItems, outlookItems, journalItems]) => {
+      .then(([overviewData, companyItems, memoItems, reportItems, outlookItems]) => {
         if (!active) return;
         setOverview(overviewData.stats);
         setCompanies(companyItems);
         setMemos(memoItems);
         setIndustryReports(reportItems);
         setMarketOutlooks(outlookItems);
-        setJournalEntries(journalItems);
         if (!memoForm.companyId && companyItems[0]) {
           setMemoForm((current) => ({ ...current, companyId: companyItems[0].id }));
         }
@@ -219,9 +196,6 @@ export function AdminDashboardPage() {
         }
         if (!marketOutlookForm.companyId && companyItems[0]) {
           setMarketOutlookForm((current) => ({ ...current, companyId: companyItems[0].id }));
-        }
-        if (!researchJournalForm.companyId && companyItems[0]) {
-          setResearchJournalForm((current) => ({ ...current, companyId: companyItems[0].id }));
         }
       });
 
@@ -355,28 +329,6 @@ export function AdminDashboardPage() {
     setEditingMarketOutlookId(null);
   };
 
-  const submitResearchJournal = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!token) return;
-
-    const payload: ResearchJournalPayload = {
-      ...researchJournalForm,
-      companyId: researchJournalForm.companyId || null,
-      publishedAt: researchJournalForm.publishedAt?.trim() ? researchJournalForm.publishedAt : null
-    };
-
-    if (researchJournalMode === "create") {
-      await createResearchJournal(token, payload);
-    } else if (editingResearchJournalId) {
-      await updateResearchJournal(token, editingResearchJournalId, payload);
-    }
-
-    setJournalEntries(await fetchAdminResearchJournal(token));
-    setResearchJournalForm((current) => ({ ...emptyResearchJournal, companyId: current.companyId || companies[0]?.id || null }));
-    setResearchJournalMode("create");
-    setEditingResearchJournalId(null);
-  };
-
   return (
     <div className="page-shell admin-shell">
       <section className="section-header">
@@ -390,7 +342,7 @@ export function AdminDashboardPage() {
           <div><span>Memos</span><strong>{overview.memoCount}</strong></div>
           <div><span>Reports</span><strong>{overview.reportCount}</strong></div>
           <div><span>Outlooks</span><strong>{overview.outlookCount}</strong></div>
-          <div><span>Journal</span><strong>{overview.journalCount}</strong></div>
+          <div><span>Valuation Models</span><strong>{overview.valuationModelCount}</strong></div>
           <div><span>Drafts</span><strong>{overview.draftCount}</strong></div>
           <div><span>Messages</span><strong>{overview.contactCount}</strong></div>
         </div>
@@ -526,7 +478,7 @@ export function AdminDashboardPage() {
       <section className="admin-content-grid">
         <IndustryReportsAdminPanel companyRefreshKey={companyRefreshKey} />
         <MarketOutlooksAdminPanel companyRefreshKey={companyRefreshKey} />
-        <ResearchJournalAdminPanel companyRefreshKey={companyRefreshKey} />
+        <ValuationModelsAdminPanel companyRefreshKey={companyRefreshKey} />
       </section>
 
       <section>

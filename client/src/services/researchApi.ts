@@ -31,6 +31,37 @@ export interface CompanyDetail extends CompanyListItem {
     createdAt: string;
     updatedAt: string;
   }>;
+  reports: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    status: string;
+    publishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  outlooks: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    month: string;
+    status: string;
+    publishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  valuationModels: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    fairValue: string;
+    currentSharePrice: string;
+    upsideDownside: string;
+    status: string;
+    publishedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
 }
 
 export interface MemoListItem {

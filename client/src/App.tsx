@@ -11,8 +11,8 @@ import { MarketOutlooksPage } from "./pages/MarketOutlooksPage.js";
 import { MarketOutlookDetailPage } from "./pages/MarketOutlookDetailPage.js";
 import { MemosPage } from "./pages/MemosPage.js";
 import { MemoDetailPage } from "./pages/MemoDetailPage.js";
-import { ResearchJournalPage } from "./pages/ResearchJournalPage.js";
-import { ResearchJournalDetailPage } from "./pages/ResearchJournalDetailPage.js";
+import { ValuationModelsPage } from "./pages/ValuationModelsPage.js";
+import { ValuationModelDetailPage } from "./pages/ValuationModelDetailPage.js";
 import { AboutPage } from "./pages/AboutPage.js";
 import { ContactPage } from "./pages/ContactPage.js";
 
@@ -29,8 +29,8 @@ export default function App() {
         <Route path="/market-outlooks/:outlookId" element={<MarketOutlookDetailPage />} />
         <Route path="/research" element={<MemosPage />} />
         <Route path="/research/:memoId" element={<MemoDetailPage />} />
-        <Route path="/journal" element={<ResearchJournalPage />} />
-        <Route path="/journal/:journalId" element={<ResearchJournalDetailPage />} />
+        <Route path="/valuation-models" element={<ValuationModelsPage />} />
+        <Route path="/valuation-models/:valuationModelId" element={<ValuationModelDetailPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/about" element={<AboutPage />} />

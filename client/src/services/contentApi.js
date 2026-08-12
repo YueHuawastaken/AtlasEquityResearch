@@ -15,12 +15,12 @@ export async function fetchMarketOutlook(outlookId) {
     const response = await api.get(`/api/market-outlooks/${outlookId}`);
     return response.data.item;
 }
-export async function fetchResearchJournalEntries(params) {
-    const response = await api.get("/api/research-journal", { params });
+export async function fetchValuationModels(params) {
+    const response = await api.get("/api/valuation-models", { params });
     return response.data;
 }
-export async function fetchResearchJournalEntry(journalId) {
-    const response = await api.get(`/api/research-journal/${journalId}`);
+export async function fetchValuationModel(valuationModelId) {
+    const response = await api.get(`/api/valuation-models/${valuationModelId}`);
     return response.data.item;
 }
 export async function searchAtlas(query) {

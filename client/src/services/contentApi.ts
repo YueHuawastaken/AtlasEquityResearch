@@ -10,7 +10,7 @@ export interface PaginatedResponse<T> {
 
 export interface SearchResultItem {
   id: string;
-  type: "company" | "memo" | "industry-report" | "market-outlook" | "research-journal";
+  type: "company" | "memo" | "industry-report" | "market-outlook" | "valuation-model";
   title: string;
   subtitle: string;
   slug: string;
@@ -84,20 +84,30 @@ export interface MarketOutlookDetail extends MarketOutlookListItem {
   author: { id: string; name: string; email: string } | null;
 }
 
-export interface ResearchJournalListItem {
+export interface ValuationModelListItem {
   id: string;
   title: string;
   slug: string;
-  prompt: string;
+  currentSharePrice: string;
+  fairValue: string;
+  upsideDownside: string;
   status: string;
   publishedAt: string | null;
-  company: { id: string; name: string; ticker: string } | null;
+  company: { id: string; name: string; ticker: string };
 }
 
-export interface ResearchJournalDetail extends ResearchJournalListItem {
-  body: string;
-  reflections: string;
-  company: { id: string; name: string; ticker: string; sector: string; industry: string } | null;
+export interface ValuationModelDetail extends ValuationModelListItem {
+  revenue: string;
+  revenueGrowth: string;
+  ebitdaOrEbit: string;
+  freeCashFlow: string;
+  wacc: string;
+  terminalGrowthRate: string;
+  enterpriseValue: string;
+  equityValue: string;
+  sharesOutstanding: string;
+  valuationConclusion: string;
+  company: { id: string; name: string; ticker: string; sector: string; industry: string };
   attachments: Array<{ id: string; fileName: string; fileType: string; url: string }>;
   author: { id: string; name: string; email: string } | null;
 }
@@ -122,13 +132,13 @@ export async function fetchMarketOutlook(outlookId: string) {
   return response.data.item;
 }
 
-export async function fetchResearchJournalEntries(params: Record<string, string | number | undefined>) {
-  const response = await api.get<PaginatedResponse<ResearchJournalListItem>>("/api/research-journal", { params });
+export async function fetchValuationModels(params: Record<string, string | number | undefined>) {
+  const response = await api.get<PaginatedResponse<ValuationModelListItem>>("/api/valuation-models", { params });
   return response.data;
 }
 
-export async function fetchResearchJournalEntry(journalId: string) {
-  const response = await api.get<{ item: ResearchJournalDetail }>(`/api/research-journal/${journalId}`);
+export async function fetchValuationModel(valuationModelId: string) {
+  const response = await api.get<{ item: ValuationModelDetail }>(`/api/valuation-models/${valuationModelId}`);
   return response.data.item;
 }
 

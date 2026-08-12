@@ -32,7 +32,7 @@ model User {
   authoredMemos    InvestmentMemo[]  @relation("MemoAuthor")
   industryReports  IndustryReport[]
   marketOutlooks   MarketOutlook[]
-  researchJournals ResearchJournal[]
+  valuationModels  ValuationModel[]
 }
 
 model Company {
@@ -49,7 +49,7 @@ model Company {
   memos            InvestmentMemo[]
   reports          IndustryReport[]
   outlooks         MarketOutlook[]
-  journalEntries   ResearchJournal[]
+  valuationModels  ValuationModel[]
   attachments      Attachment[]
 }
 
@@ -143,22 +143,32 @@ model MarketOutlook {
   attachments          Attachment[]
 }
 
-model ResearchJournal {
-  id          String       @id @default(cuid())
-  companyId   String?
-  authorId    String?
-  title       String
-  slug        String       @unique
-  prompt      String
-  body        String
-  reflections String
-  status      EntityStatus @default(draft)
-  publishedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  company     Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  author      User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  attachments Attachment[]
+model ValuationModel {
+  id                 String       @id @default(cuid())
+  companyId          String
+  authorId           String?
+  title              String
+  slug               String       @unique
+  currentSharePrice  Decimal      @db.Decimal(18, 4)
+  revenue            Decimal      @db.Decimal(18, 4)
+  revenueGrowth      Decimal      @db.Decimal(10, 4)
+  ebitdaOrEbit       Decimal      @db.Decimal(18, 4)
+  freeCashFlow       Decimal      @db.Decimal(18, 4)
+  wacc               Decimal      @db.Decimal(10, 4)
+  terminalGrowthRate Decimal      @db.Decimal(10, 4)
+  enterpriseValue    Decimal      @db.Decimal(18, 4)
+  equityValue        Decimal      @db.Decimal(18, 4)
+  sharesOutstanding  Decimal      @db.Decimal(18, 4)
+  fairValue          Decimal      @db.Decimal(18, 4)
+  upsideDownside     Decimal      @db.Decimal(10, 4)
+  valuationConclusion String
+  status             EntityStatus @default(draft)
+  publishedAt        DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  company            Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  author             User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  attachments        Attachment[]
 }
 
 model Tag {
@@ -185,7 +195,7 @@ model Attachment {
   memoId            String?
   industryReportId  String?
   marketOutlookId   String?
-  researchJournalId String?
+  valuationModelId  String?
   fileName          String
   fileType          String
   fileSize          Int
@@ -197,7 +207,7 @@ model Attachment {
   memo            InvestmentMemo?  @relation(fields: [memoId], references: [id], onDelete: SetNull)
   industryReport  IndustryReport?  @relation(fields: [industryReportId], references: [id], onDelete: SetNull)
   marketOutlook   MarketOutlook?   @relation(fields: [marketOutlookId], references: [id], onDelete: SetNull)
-  researchJournal ResearchJournal? @relation(fields: [researchJournalId], references: [id], onDelete: SetNull)
+  valuationModel  ValuationModel?  @relation(fields: [valuationModelId], references: [id], onDelete: SetNull)
 }
 
 model NewsletterSubscriber {

@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { IndustryReportsAdminPanel } from "../components/admin/IndustryReportsAdminPanel.js";
 import { MarketOutlooksAdminPanel } from "../components/admin/MarketOutlooksAdminPanel.js";
-import { ResearchJournalAdminPanel } from "../components/admin/ResearchJournalAdminPanel.js";
+import { ValuationModelsAdminPanel } from "../components/admin/ValuationModelsAdminPanel.js";
 import { ContactMessagesAdminPanel } from "../components/admin/ContactMessagesAdminPanel.js";
-import { createCompany, createIndustryReport, createMarketOutlook, createResearchJournal, createMemo, deleteCompany, deleteMemo, fetchAdminCompanies, fetchAdminIndustryReports, fetchAdminMarketOutlooks, fetchAdminResearchJournal, fetchAdminMemos, fetchAdminMe, fetchOverview, updateIndustryReport, updateMarketOutlook, updateResearchJournal, updateCompany, updateMemo } from "../services/adminApi.js";
+import { createCompany, createIndustryReport, createMarketOutlook, createMemo, deleteCompany, deleteMemo, fetchAdminCompanies, fetchAdminIndustryReports, fetchAdminMarketOutlooks, fetchAdminMemos, fetchAdminMe, fetchOverview, updateIndustryReport, updateMarketOutlook, updateCompany, updateMemo } from "../services/adminApi.js";
 const emptyCompany = {
     name: "",
     ticker: "",
@@ -81,41 +81,27 @@ const emptyMarketOutlook = {
     status: "draft",
     publishedAt: null
 };
-const emptyResearchJournal = {
-    companyId: null,
-    title: "",
-    slug: "",
-    prompt: "",
-    body: "",
-    reflections: "",
-    status: "draft",
-    publishedAt: null
-};
 export function AdminDashboardPage() {
     const token = localStorage.getItem("atlas-admin-token");
     const [meLoaded, setMeLoaded] = useState(false);
     const [allowed, setAllowed] = useState(false);
-    const [overview, setOverview] = useState({ companyCount: 0, memoCount: 0, reportCount: 0, outlookCount: 0, journalCount: 0, draftCount: 0, contactCount: 0 });
+    const [overview, setOverview] = useState({ companyCount: 0, memoCount: 0, reportCount: 0, outlookCount: 0, valuationModelCount: 0, draftCount: 0, contactCount: 0 });
     const [companies, setCompanies] = useState([]);
     const [memos, setMemos] = useState([]);
     const [industryReports, setIndustryReports] = useState([]);
     const [marketOutlooks, setMarketOutlooks] = useState([]);
-    const [journalEntries, setJournalEntries] = useState([]);
     const [companyForm, setCompanyForm] = useState(emptyCompany);
     const [memoForm, setMemoForm] = useState(emptyMemo);
     const [industryReportForm, setIndustryReportForm] = useState(emptyIndustryReport);
     const [marketOutlookForm, setMarketOutlookForm] = useState(emptyMarketOutlook);
-    const [researchJournalForm, setResearchJournalForm] = useState(emptyResearchJournal);
     const [companyMode, setCompanyMode] = useState("create");
     const [memoMode, setMemoMode] = useState("create");
     const [industryReportMode, setIndustryReportMode] = useState("create");
     const [marketOutlookMode, setMarketOutlookMode] = useState("create");
-    const [researchJournalMode, setResearchJournalMode] = useState("create");
     const [editingCompanyId, setEditingCompanyId] = useState(null);
     const [editingMemoId, setEditingMemoId] = useState(null);
     const [editingIndustryReportId, setEditingIndustryReportId] = useState(null);
     const [editingMarketOutlookId, setEditingMarketOutlookId] = useState(null);
-    const [editingResearchJournalId, setEditingResearchJournalId] = useState(null);
     const [memoValidationError, setMemoValidationError] = useState(null);
     const [companyRefreshKey, setCompanyRefreshKey] = useState(0);
     const refreshCompanies = async (authToken) => {
@@ -157,10 +143,9 @@ export function AdminDashboardPage() {
             fetchAdminCompanies(token),
             fetchAdminMemos(token),
             fetchAdminIndustryReports(token),
-            fetchAdminMarketOutlooks(token),
-            fetchAdminResearchJournal(token)
+            fetchAdminMarketOutlooks(token)
         ])
-            .then(([overviewData, companyItems, memoItems, reportItems, outlookItems, journalItems]) => {
+            .then(([overviewData, companyItems, memoItems, reportItems, outlookItems]) => {
             if (!active)
                 return;
             setOverview(overviewData.stats);
@@ -168,7 +153,6 @@ export function AdminDashboardPage() {
             setMemos(memoItems);
             setIndustryReports(reportItems);
             setMarketOutlooks(outlookItems);
-            setJournalEntries(journalItems);
             if (!memoForm.companyId && companyItems[0]) {
                 setMemoForm((current) => ({ ...current, companyId: companyItems[0].id }));
             }
@@ -177,9 +161,6 @@ export function AdminDashboardPage() {
             }
             if (!marketOutlookForm.companyId && companyItems[0]) {
                 setMarketOutlookForm((current) => ({ ...current, companyId: companyItems[0].id }));
-            }
-            if (!researchJournalForm.companyId && companyItems[0]) {
-                setResearchJournalForm((current) => ({ ...current, companyId: companyItems[0].id }));
             }
         });
         return () => {
@@ -293,27 +274,7 @@ export function AdminDashboardPage() {
         setMarketOutlookMode("create");
         setEditingMarketOutlookId(null);
     };
-    const submitResearchJournal = async (event) => {
-        event.preventDefault();
-        if (!token)
-            return;
-        const payload = {
-            ...researchJournalForm,
-            companyId: researchJournalForm.companyId || null,
-            publishedAt: researchJournalForm.publishedAt?.trim() ? researchJournalForm.publishedAt : null
-        };
-        if (researchJournalMode === "create") {
-            await createResearchJournal(token, payload);
-        }
-        else if (editingResearchJournalId) {
-            await updateResearchJournal(token, editingResearchJournalId, payload);
-        }
-        setJournalEntries(await fetchAdminResearchJournal(token));
-        setResearchJournalForm((current) => ({ ...emptyResearchJournal, companyId: current.companyId || companies[0]?.id || null }));
-        setResearchJournalMode("create");
-        setEditingResearchJournalId(null);
-    };
-    return (_jsxs("div", { className: "page-shell admin-shell", children: [_jsxs("section", { className: "section-header", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Admin Dashboard" }), _jsx("h1", { children: "Content Operations" }), _jsx("p", { className: "muted", children: "Create, edit, publish, and remove companies and memos from one control surface." })] }), _jsxs("div", { className: "admin-stats", children: [_jsxs("div", { children: [_jsx("span", { children: "Companies" }), _jsx("strong", { children: overview.companyCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Memos" }), _jsx("strong", { children: overview.memoCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Reports" }), _jsx("strong", { children: overview.reportCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Outlooks" }), _jsx("strong", { children: overview.outlookCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Journal" }), _jsx("strong", { children: overview.journalCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Drafts" }), _jsx("strong", { children: overview.draftCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Messages" }), _jsx("strong", { children: overview.contactCount })] })] })] }), _jsxs("section", { className: "admin-grid", children: [_jsxs("article", { className: "card admin-panel", children: [_jsxs("div", { className: "panel-heading", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Company" }), _jsx("h2", { children: companyMode === "create" ? "Create Company" : "Edit Company" })] }), _jsx("button", { type: "button", className: "ghost-button", onClick: () => { setCompanyMode("create"); setCompanyForm(emptyCompany); }, children: "Reset" })] }), _jsxs("form", { className: "admin-form", onSubmit: submitCompany, children: [_jsx("input", { placeholder: "Name", value: companyForm.name, onChange: (event) => setCompanyForm({ ...companyForm, name: event.target.value }), required: true }), _jsx("input", { placeholder: "Ticker", value: companyForm.ticker, onChange: (event) => setCompanyForm({ ...companyForm, ticker: event.target.value.toUpperCase() }), required: true }), _jsx("input", { placeholder: "Exchange", value: companyForm.exchange, onChange: (event) => setCompanyForm({ ...companyForm, exchange: event.target.value }), required: true }), _jsx("input", { placeholder: "Sector", value: companyForm.sector, onChange: (event) => setCompanyForm({ ...companyForm, sector: event.target.value }), required: true }), _jsx("input", { placeholder: "Industry", value: companyForm.industry, onChange: (event) => setCompanyForm({ ...companyForm, industry: event.target.value }), required: true }), _jsx("textarea", { placeholder: "Description", value: companyForm.description ?? "", onChange: (event) => setCompanyForm({ ...companyForm, description: event.target.value }), rows: 5 }), _jsxs("select", { value: companyForm.status, onChange: (event) => setCompanyForm({ ...companyForm, status: event.target.value }), children: [_jsx("option", { value: "draft", children: "Draft" }), _jsx("option", { value: "published", children: "Published" }), _jsx("option", { value: "archived", children: "Archived" })] }), _jsx("button", { type: "submit", children: "Save Company" })] }), _jsx("div", { className: "admin-list", children: companies.map((company) => (_jsxs("article", { className: "admin-list-item", children: [_jsxs("div", { children: [_jsx("strong", { children: company.name }), _jsxs("span", { children: [company.ticker, " \u00B7 ", company.status, " \u00B7 ", company._count.memos, " memos"] })] }), _jsxs("div", { className: "inline-actions", children: [_jsx("button", { type: "button", className: "ghost-button", onClick: () => {
+    return (_jsxs("div", { className: "page-shell admin-shell", children: [_jsxs("section", { className: "section-header", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Admin Dashboard" }), _jsx("h1", { children: "Content Operations" }), _jsx("p", { className: "muted", children: "Create, edit, publish, and remove companies and memos from one control surface." })] }), _jsxs("div", { className: "admin-stats", children: [_jsxs("div", { children: [_jsx("span", { children: "Companies" }), _jsx("strong", { children: overview.companyCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Memos" }), _jsx("strong", { children: overview.memoCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Reports" }), _jsx("strong", { children: overview.reportCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Outlooks" }), _jsx("strong", { children: overview.outlookCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Valuation Models" }), _jsx("strong", { children: overview.valuationModelCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Drafts" }), _jsx("strong", { children: overview.draftCount })] }), _jsxs("div", { children: [_jsx("span", { children: "Messages" }), _jsx("strong", { children: overview.contactCount })] })] })] }), _jsxs("section", { className: "admin-grid", children: [_jsxs("article", { className: "card admin-panel", children: [_jsxs("div", { className: "panel-heading", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Company" }), _jsx("h2", { children: companyMode === "create" ? "Create Company" : "Edit Company" })] }), _jsx("button", { type: "button", className: "ghost-button", onClick: () => { setCompanyMode("create"); setCompanyForm(emptyCompany); }, children: "Reset" })] }), _jsxs("form", { className: "admin-form", onSubmit: submitCompany, children: [_jsx("input", { placeholder: "Name", value: companyForm.name, onChange: (event) => setCompanyForm({ ...companyForm, name: event.target.value }), required: true }), _jsx("input", { placeholder: "Ticker", value: companyForm.ticker, onChange: (event) => setCompanyForm({ ...companyForm, ticker: event.target.value.toUpperCase() }), required: true }), _jsx("input", { placeholder: "Exchange", value: companyForm.exchange, onChange: (event) => setCompanyForm({ ...companyForm, exchange: event.target.value }), required: true }), _jsx("input", { placeholder: "Sector", value: companyForm.sector, onChange: (event) => setCompanyForm({ ...companyForm, sector: event.target.value }), required: true }), _jsx("input", { placeholder: "Industry", value: companyForm.industry, onChange: (event) => setCompanyForm({ ...companyForm, industry: event.target.value }), required: true }), _jsx("textarea", { placeholder: "Description", value: companyForm.description ?? "", onChange: (event) => setCompanyForm({ ...companyForm, description: event.target.value }), rows: 5 }), _jsxs("select", { value: companyForm.status, onChange: (event) => setCompanyForm({ ...companyForm, status: event.target.value }), children: [_jsx("option", { value: "draft", children: "Draft" }), _jsx("option", { value: "published", children: "Published" }), _jsx("option", { value: "archived", children: "Archived" })] }), _jsx("button", { type: "submit", children: "Save Company" })] }), _jsx("div", { className: "admin-list", children: companies.map((company) => (_jsxs("article", { className: "admin-list-item", children: [_jsxs("div", { children: [_jsx("strong", { children: company.name }), _jsxs("span", { children: [company.ticker, " \u00B7 ", company.status, " \u00B7 ", company._count.memos, " memos"] })] }), _jsxs("div", { className: "inline-actions", children: [_jsx("button", { type: "button", className: "ghost-button", onClick: () => {
                                                         setCompanyMode("edit");
                                                         setCompanyForm({
                                                             name: company.name,
@@ -346,5 +307,5 @@ export function AdminDashboardPage() {
                                                         });
                                                         setEditingMemoId(memo.id);
                                                     }, children: "Edit" }), _jsx("button", { type: "button", className: "danger-button", onClick: async () => { if (!token)
-                                                        return; await deleteMemo(token, memo.id); setMemos(await fetchAdminMemos(token)); }, children: "Delete" })] })] }, memo.id))) })] })] }), _jsxs("section", { className: "admin-content-grid", children: [_jsx(IndustryReportsAdminPanel, { companyRefreshKey: companyRefreshKey }), _jsx(MarketOutlooksAdminPanel, { companyRefreshKey: companyRefreshKey }), _jsx(ResearchJournalAdminPanel, { companyRefreshKey: companyRefreshKey })] }), _jsx("section", { children: _jsx(ContactMessagesAdminPanel, {}) })] }));
+                                                        return; await deleteMemo(token, memo.id); setMemos(await fetchAdminMemos(token)); }, children: "Delete" })] })] }, memo.id))) })] })] }), _jsxs("section", { className: "admin-content-grid", children: [_jsx(IndustryReportsAdminPanel, { companyRefreshKey: companyRefreshKey }), _jsx(MarketOutlooksAdminPanel, { companyRefreshKey: companyRefreshKey }), _jsx(ValuationModelsAdminPanel, { companyRefreshKey: companyRefreshKey })] }), _jsx("section", { children: _jsx(ContactMessagesAdminPanel, {}) })] }));
 }

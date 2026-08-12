@@ -4,7 +4,7 @@ const links = [
   { to: "/research", label: "Research" },
   { to: "/industry-research", label: "Industry Research" },
   { to: "/market-outlooks", label: "Outlooks" },
-  { to: "/journal", label: "Journal" },
+  { to: "/valuation-models", label: "Valuation Models" },
   { to: "/companies", label: "Companies" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },

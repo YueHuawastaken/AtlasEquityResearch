@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  fetchResearchJournalEntries,
-  type ResearchJournalListItem,
+  fetchValuationModels,
+  type ValuationModelListItem,
 } from "../services/contentApi.js";
 
 import {
@@ -10,9 +10,9 @@ import {
   type CompanyListItem,
 } from "../services/researchApi.js";
 
-export function ResearchJournalPage() {
+export function ValuationModelsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [items, setItems] = useState<ResearchJournalListItem[]>([]);
+  const [items, setItems] = useState<ValuationModelListItem[]>([]);
   const [companies, setCompanies] = useState<CompanyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(searchParams.get("search") ?? "");
@@ -26,7 +26,7 @@ export function ResearchJournalPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    void fetchResearchJournalEntries({ search: searchParams.get("search") ?? undefined, companyId: searchParams.get("companyId") ?? undefined })
+    void fetchValuationModels({ search: searchParams.get("search") ?? undefined, companyId: searchParams.get("companyId") ?? undefined })
       .then((response) => { if (active) setItems(response.items); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -51,12 +51,12 @@ export function ResearchJournalPage() {
     <div className="page-shell">
       <section className="section-header">
         <div>
-          <p className="eyebrow">Thinking</p>
-          <h1>Research Journal</h1>
-          <p className="muted">A raw log of questions, mistakes, and lessons behind the research process.</p>
+          <p className="eyebrow">Valuation</p>
+          <h1>Valuation Models</h1>
+          <p className="muted">DCF and valuation snapshots connected to covered companies.</p>
         </div>
         <form className="search-bar" onSubmit={submitSearch}>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search journal entries" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search valuation models" />
           <button type="submit">Search</button>
         </form>
       </section>
@@ -74,17 +74,17 @@ export function ResearchJournalPage() {
       </section>
 
       <section className="card table-card">
-        {loading ? <div className="table-empty">Loading journal entries…</div> : items.length ? (
+        {loading ? <div className="table-empty">Loading valuation models…</div> : items.length ? (
           <div className="stack-list">
             {items.map((item) => (
-              <Link key={item.id} to={`/journal/${item.id}`} className="stack-row">
+              <Link key={item.id} to={`/valuation-models/${item.id}`} className="stack-row">
                 <strong>{item.title}</strong>
-                <span>{item.company ? `${item.company.name} (${item.company.ticker})` : "Research journal"}</span>
-                <p className="muted">{item.prompt}</p>
+                <span>{item.company.name} ({item.company.ticker})</span>
+                <p className="muted">Price {item.currentSharePrice} · Fair Value {item.fairValue} · Upside/Downside {item.upsideDownside}</p>
               </Link>
             ))}
           </div>
-        ) : <div className="table-empty">No journal entries found.</div>}
+        ) : <div className="table-empty">No valuation models found.</div>}
       </section>
     </div>
   );

@@ -47,7 +47,7 @@ export function CompanyDetailPage() {
         <div className="detail-summary">
           <span>Status</span>
           <strong>{company.status}</strong>
-          <span>{company._count.memos} research memos</span>
+          <span>{company._count?.memos ?? company.memos.length} research memos</span>
         </div>
       </section>
 
@@ -57,7 +57,7 @@ export function CompanyDetailPage() {
       </section>
 
       <section className="card content-card">
-        <h2>Research</h2>
+        <h2>Investment Memos</h2>
         {company.memos.length ? (
           <div className="stack-list">
             {company.memos.map((memo) => (
@@ -69,6 +69,54 @@ export function CompanyDetailPage() {
           </div>
         ) : (
           <p className="muted">No memos are linked to this company yet.</p>
+        )}
+      </section>
+
+      <section className="card content-card">
+        <h2>Industry Research</h2>
+        {company.reports.length ? (
+          <div className="stack-list">
+            {company.reports.map((report) => (
+              <Link key={report.id} to={`/industry-research/${report.id}`} className="stack-row">
+                <strong>{report.title}</strong>
+                <span>{report.status}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">No published industry reports are linked yet.</p>
+        )}
+      </section>
+
+      <section className="card content-card">
+        <h2>Market Outlooks</h2>
+        {company.outlooks.length ? (
+          <div className="stack-list">
+            {company.outlooks.map((outlook) => (
+              <Link key={outlook.id} to={`/market-outlooks/${outlook.id}`} className="stack-row">
+                <strong>{outlook.title}</strong>
+                <span>{outlook.month} · {outlook.status}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">No published market outlooks are linked yet.</p>
+        )}
+      </section>
+
+      <section className="card content-card">
+        <h2>Valuation Models</h2>
+        {company.valuationModels.length ? (
+          <div className="stack-list">
+            {company.valuationModels.map((model) => (
+              <Link key={model.id} to={`/valuation-models/${model.id}`} className="stack-row">
+                <strong>{model.title}</strong>
+                <span>Price {model.currentSharePrice} · Fair Value {model.fairValue} · Upside/Downside {model.upsideDownside}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">No published valuation models are linked yet.</p>
         )}
       </section>
     </div>

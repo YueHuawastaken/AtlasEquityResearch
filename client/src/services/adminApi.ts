@@ -18,7 +18,7 @@ export interface AdminOverview {
     memoCount: number;
     reportCount: number;
     outlookCount: number;
-    journalCount: number;
+    valuationModelCount: number;
     draftCount: number;
     contactCount: number;
   };
@@ -207,37 +207,57 @@ export interface MarketOutlookPayload {
   publishedAt?: string | null;
 }
 
-export interface AdminResearchJournal {
+export interface AdminValuationModel {
   id: string;
-  companyId: string | null;
+  companyId: string;
   authorId: string | null;
   title: string;
   slug: string;
-  prompt: string;
-  body: string;
-  reflections: string;
+  currentSharePrice: string;
+  revenue: string;
+  revenueGrowth: string;
+  ebitdaOrEbit: string;
+  freeCashFlow: string;
+  wacc: string;
+  terminalGrowthRate: string;
+  enterpriseValue: string;
+  equityValue: string;
+  sharesOutstanding: string;
+  fairValue: string;
+  upsideDownside: string;
+  valuationConclusion: string;
   status: string;
   publishedAt: string | null;
   company: {
     id: string;
     name: string;
     ticker: string;
-  } | null;
+  };
 }
 
-export interface ResearchJournalPayload {
-  companyId?: string | null;
+export interface ValuationModelPayload {
+  companyId: string;
   authorId?: string | null;
   title: string;
   slug: string;
-  prompt: string;
-  body: string;
-  reflections: string;
+  currentSharePrice: number;
+  revenue: number;
+  revenueGrowth: number;
+  ebitdaOrEbit: number;
+  freeCashFlow: number;
+  wacc: number;
+  terminalGrowthRate: number;
+  enterpriseValue: number;
+  equityValue: number;
+  sharesOutstanding: number;
+  fairValue: number;
+  upsideDownside: number;
+  valuationConclusion: string;
   status: string;
   publishedAt?: string | null;
 }
 
-export type AttachmentScope = "company" | "memo" | "industryReport" | "marketOutlook" | "researchJournal";
+export type AttachmentScope = "company" | "memo" | "industryReport" | "marketOutlook" | "valuationModel";
 
 export interface AdminAttachment {
   id: string;
@@ -245,7 +265,7 @@ export interface AdminAttachment {
   memoId: string | null;
   industryReportId: string | null;
   marketOutlookId: string | null;
-  researchJournalId: string | null;
+  valuationModelId: string | null;
   fileName: string;
   fileType: string;
   fileSize: number;
@@ -366,23 +386,23 @@ export async function deleteMarketOutlook(token: string, outlookId: string) {
   await api.delete(`/api/admin/market-outlooks/${outlookId}`, authHeaders(token));
 }
 
-export async function fetchAdminResearchJournal(token: string) {
-  const response = await api.get<{ items: AdminResearchJournal[] }>("/api/admin/research-journal", authHeaders(token));
+export async function fetchAdminValuationModels(token: string) {
+  const response = await api.get<{ items: AdminValuationModel[] }>("/api/admin/valuation-models", authHeaders(token));
   return response.data.items;
 }
 
-export async function createResearchJournal(token: string, payload: ResearchJournalPayload) {
-  const response = await api.post<{ item: AdminResearchJournal }>("/api/admin/research-journal", payload, authHeaders(token));
+export async function createValuationModel(token: string, payload: ValuationModelPayload) {
+  const response = await api.post<{ item: AdminValuationModel }>("/api/admin/valuation-models", payload, authHeaders(token));
   return response.data.item;
 }
 
-export async function updateResearchJournal(token: string, journalId: string, payload: Partial<ResearchJournalPayload>) {
-  const response = await api.patch<{ item: AdminResearchJournal }>(`/api/admin/research-journal/${journalId}`, payload, authHeaders(token));
+export async function updateValuationModel(token: string, valuationModelId: string, payload: Partial<ValuationModelPayload>) {
+  const response = await api.patch<{ item: AdminValuationModel }>(`/api/admin/valuation-models/${valuationModelId}`, payload, authHeaders(token));
   return response.data.item;
 }
 
-export async function deleteResearchJournal(token: string, journalId: string) {
-  await api.delete(`/api/admin/research-journal/${journalId}`, authHeaders(token));
+export async function deleteValuationModel(token: string, valuationModelId: string) {
+  await api.delete(`/api/admin/valuation-models/${valuationModelId}`, authHeaders(token));
 }
 
 export async function fetchAdminAttachments(token: string, scope: AttachmentScope, parentId: string) {

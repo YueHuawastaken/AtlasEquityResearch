@@ -78,20 +78,20 @@ export async function updateMarketOutlook(token, outlookId, payload) {
 export async function deleteMarketOutlook(token, outlookId) {
     await api.delete(`/api/admin/market-outlooks/${outlookId}`, authHeaders(token));
 }
-export async function fetchAdminResearchJournal(token) {
-    const response = await api.get("/api/admin/research-journal", authHeaders(token));
+export async function fetchAdminValuationModels(token) {
+    const response = await api.get("/api/admin/valuation-models", authHeaders(token));
     return response.data.items;
 }
-export async function createResearchJournal(token, payload) {
-    const response = await api.post("/api/admin/research-journal", payload, authHeaders(token));
+export async function createValuationModel(token, payload) {
+    const response = await api.post("/api/admin/valuation-models", payload, authHeaders(token));
     return response.data.item;
 }
-export async function updateResearchJournal(token, journalId, payload) {
-    const response = await api.patch(`/api/admin/research-journal/${journalId}`, payload, authHeaders(token));
+export async function updateValuationModel(token, valuationModelId, payload) {
+    const response = await api.patch(`/api/admin/valuation-models/${valuationModelId}`, payload, authHeaders(token));
     return response.data.item;
 }
-export async function deleteResearchJournal(token, journalId) {
-    await api.delete(`/api/admin/research-journal/${journalId}`, authHeaders(token));
+export async function deleteValuationModel(token, valuationModelId) {
+    await api.delete(`/api/admin/valuation-models/${valuationModelId}`, authHeaders(token));
 }
 export async function fetchAdminAttachments(token, scope, parentId) {
     const response = await api.get("/api/admin/attachments", {
