@@ -7,50 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum EntityStatus {
-  draft
-  published
-  archived
-}
-
-enum Recommendation {
-  buy
-  overweight
-  hold
-  underweight
-  sell
-}
-
 model User {
-  id               String            @id @default(cuid())
-  email            String            @unique
-  name             String
-  passwordHash     String
-  role             String            @default("viewer")
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  authoredMemos    InvestmentMemo[]  @relation("MemoAuthor")
-  industryReports  IndustryReport[]
-  marketOutlooks   MarketOutlook[]
+  id              String            @id @default(cuid())
+  email           String            @unique
+  name            String
+  passwordHash    String
+  role            String            @default("viewer")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  industryReports IndustryReport[]
+  authoredMemos   InvestmentMemo[]  @relation("MemoAuthor")
+  marketOutlooks  MarketOutlook[]
   valuationModels  ValuationModel[]
+  WatchlistItem   WatchlistItem[]
 }
 
 model Company {
-  id               String            @id @default(cuid())
-  name             String
-  ticker           String            @unique
-  exchange         String
-  sector           String
-  industry         String
-  description      String?
-  status           EntityStatus      @default(draft)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  memos            InvestmentMemo[]
-  reports          IndustryReport[]
-  outlooks         MarketOutlook[]
-  valuationModels  ValuationModel[]
-  attachments      Attachment[]
+  id              String            @id @default(cuid())
+  name            String
+  ticker          String            @unique
+  exchange        String
+  sector          String
+  industry        String
+  description     String?
+  status          EntityStatus      @default(draft)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  attachments     Attachment[]
+  reports         IndustryReport[]
+  memos           InvestmentMemo[]
+  outlooks        MarketOutlook[]
+  valuationModels ValuationModel[]
+  WatchlistItem   WatchlistItem[]
 }
 
 model InvestmentMemo {
@@ -67,14 +55,44 @@ model InvestmentMemo {
   convictionLevel   Int
   executiveSummary  String
   thesis            String
+  keyCatalysts      String
+  keyRisks          String
   status            EntityStatus   @default(draft)
   publishedAt       DateTime?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  author            User?          @relation("MemoAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  tags              MemoTag[]
   attachments       Attachment[]
+  author            User?          @relation("MemoAuthor", fields: [authorId], references: [id])
+  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tags              MemoTag[]
+}
+
+model ValuationModel {
+  id                  String       @id @default(cuid())
+  companyId           String
+  authorId            String?
+  title               String
+  slug                String       @unique
+  currentSharePrice   Decimal      @db.Decimal(18, 4)
+  revenue             Decimal      @db.Decimal(18, 4)
+  revenueGrowth       Decimal      @db.Decimal(10, 4)
+  ebitdaOrEbit        Decimal      @db.Decimal(18, 4)
+  freeCashFlow        Decimal      @db.Decimal(18, 4)
+  wacc                Decimal      @db.Decimal(10, 4)
+  terminalGrowthRate  Decimal      @db.Decimal(10, 4)
+  enterpriseValue     Decimal      @db.Decimal(18, 4)
+  equityValue         Decimal      @db.Decimal(18, 4)
+  sharesOutstanding   Decimal      @db.Decimal(18, 0)
+  fairValue           Decimal      @db.Decimal(18, 4)
+  upsideDownside      Decimal      @db.Decimal(10, 4)
+  valuationConclusion String
+  status              EntityStatus @default(draft)
+  publishedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  attachments         Attachment[]
+  author              User?        @relation(fields: [authorId], references: [id])
+  company             Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
 
 model IndustryReport {
@@ -103,9 +121,9 @@ model IndustryReport {
   publishedAt            DateTime?
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
-  company                Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  author                 User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
   attachments            Attachment[]
+  author                 User?        @relation(fields: [authorId], references: [id])
+  company                Company?     @relation(fields: [companyId], references: [id])
 }
 
 model MarketOutlook {
@@ -138,37 +156,9 @@ model MarketOutlook {
   publishedAt          DateTime?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
-  company              Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  author               User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
   attachments          Attachment[]
-}
-
-model ValuationModel {
-  id                 String       @id @default(cuid())
-  companyId          String
-  authorId           String?
-  title              String
-  slug               String       @unique
-  currentSharePrice  Decimal      @db.Decimal(18, 4)
-  revenue            Decimal      @db.Decimal(18, 4)
-  revenueGrowth      Decimal      @db.Decimal(10, 4)
-  ebitdaOrEbit       Decimal      @db.Decimal(18, 4)
-  freeCashFlow       Decimal      @db.Decimal(18, 4)
-  wacc               Decimal      @db.Decimal(10, 4)
-  terminalGrowthRate Decimal      @db.Decimal(10, 4)
-  enterpriseValue    Decimal      @db.Decimal(18, 4)
-  equityValue        Decimal      @db.Decimal(18, 4)
-  sharesOutstanding  Decimal      @db.Decimal(18, 4)
-  fairValue          Decimal      @db.Decimal(18, 4)
-  upsideDownside     Decimal      @db.Decimal(10, 4)
-  valuationConclusion String
-  status             EntityStatus @default(draft)
-  publishedAt        DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  company            Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  author             User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  attachments        Attachment[]
+  author               User?        @relation(fields: [authorId], references: [id])
+  company              Company?     @relation(fields: [companyId], references: [id])
 }
 
 model Tag {
@@ -190,7 +180,7 @@ model MemoTag {
 }
 
 model Attachment {
-  id                String   @id @default(cuid())
+  id                String           @id @default(cuid())
   companyId         String?
   memoId            String?
   industryReportId  String?
@@ -201,13 +191,12 @@ model Attachment {
   fileSize          Int
   url               String
   publicId          String
-  createdAt         DateTime @default(now())
-
-  company         Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  memo            InvestmentMemo?  @relation(fields: [memoId], references: [id], onDelete: SetNull)
-  industryReport  IndustryReport?  @relation(fields: [industryReportId], references: [id], onDelete: SetNull)
-  marketOutlook   MarketOutlook?   @relation(fields: [marketOutlookId], references: [id], onDelete: SetNull)
-  valuationModel  ValuationModel?  @relation(fields: [valuationModelId], references: [id], onDelete: SetNull)
+  createdAt         DateTime         @default(now())
+  company           Company?         @relation(fields: [companyId], references: [id])
+  industryReport    IndustryReport?  @relation(fields: [industryReportId], references: [id])
+  marketOutlook     MarketOutlook?   @relation(fields: [marketOutlookId], references: [id])
+  memo              InvestmentMemo?  @relation(fields: [memoId], references: [id])
+  valuationModel    ValuationModel?  @relation(fields: [valuationModelId], references: [id])
 }
 
 model NewsletterSubscriber {
@@ -225,4 +214,29 @@ model ContactMessage {
   status    String   @default("new")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model WatchlistItem {
+  id        String   @id
+  userId    String
+  companyId String
+  createdAt DateTime @default(now())
+  Company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+}
+
+enum EntityStatus {
+  draft
+  published
+  archived
+}
+
+enum Recommendation {
+  buy
+  overweight
+  hold
+  underweight
+  sell
 }

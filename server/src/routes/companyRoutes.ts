@@ -69,7 +69,8 @@ companyRouter.get("/:companyId", async (req, res, next) => {
           select: {
             memos: true,
             reports: true,
-            outlooks: true
+            outlooks: true,
+            valuationModels: true
           }
         },
         memos: {
@@ -113,6 +114,22 @@ companyRouter.get("/:companyId", async (req, res, next) => {
             updatedAt: true
           }
         },
+        valuationModels: {
+          where: { status: "published" },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            fairValue: true,
+            currentSharePrice: true,
+            upsideDownside: true,
+            status: true,
+            publishedAt: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        }
       }
     });
 
@@ -120,7 +137,7 @@ companyRouter.get("/:companyId", async (req, res, next) => {
       return res.status(404).json({ message: "Company not found" });
     }
 
-    res.json({ item: { ...company, valuationModels: [] } });
+    res.json({ item: company });
   } catch (error) {
     next(error);
   }

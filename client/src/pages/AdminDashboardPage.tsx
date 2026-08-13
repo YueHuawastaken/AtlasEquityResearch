@@ -14,9 +14,6 @@ import {
   deleteMarketOutlook,
   deleteMemo,
   fetchAdminCompanies,
-  fetchAdminIndustryReports,
-  fetchAdminMarketOutlooks,
-  fetchAdminMemos,
   fetchAdminMe,
   fetchOverview,
   updateIndustryReport,
@@ -24,9 +21,6 @@ import {
   updateCompany,
   updateMemo,
   type AdminCompany,
-  type AdminIndustryReport,
-  type AdminMarketOutlook,
-  type AdminMemo,
   type CompanyPayload,
   type IndustryReportPayload,
   type MarketOutlookPayload,
@@ -58,6 +52,8 @@ const emptyMemo: MemoPayload = {
   convictionLevel: 5,
   executiveSummary: "",
   thesis: "",
+  keyCatalysts: "",
+  keyRisks: "",
   status: "draft",
   publishedAt: null
 };
@@ -120,9 +116,6 @@ export function AdminDashboardPage() {
   const [allowed, setAllowed] = useState(false);
   const [overview, setOverview] = useState({ companyCount: 0, memoCount: 0, reportCount: 0, outlookCount: 0, valuationModelCount: 0, draftCount: 0, contactCount: 0 });
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
-  const [memos, setMemos] = useState<AdminMemo[]>([]);
-  const [industryReports, setIndustryReports] = useState<AdminIndustryReport[]>([]);
-  const [marketOutlooks, setMarketOutlooks] = useState<AdminMarketOutlook[]>([]);
   const [companyForm, setCompanyForm] = useState<CompanyPayload>(emptyCompany);
   const [memoForm, setMemoForm] = useState<MemoPayload>(emptyMemo);
   const [industryReportForm, setIndustryReportForm] = useState<IndustryReportPayload>(emptyIndustryReport);
@@ -188,18 +181,10 @@ export function AdminDashboardPage() {
       }
     });
 
-    void Promise.all([
-      fetchOverview(token),
-      fetchAdminMemos(token),
-      fetchAdminIndustryReports(token),
-      fetchAdminMarketOutlooks(token)
-    ])
-      .then(([overviewData, memoItems, reportItems, outlookItems]) => {
+    void fetchOverview(token)
+      .then((overviewData) => {
         if (!active) return;
         setOverview(overviewData.stats);
-        setMemos(memoItems);
-        setIndustryReports(reportItems);
-        setMarketOutlooks(outlookItems);
       });
 
     return () => {
@@ -281,8 +266,6 @@ export function AdminDashboardPage() {
       await updateMemo(token, editingMemoId, payload);
     }
 
-    const refreshed = await fetchAdminMemos(token);
-    setMemos(refreshed);
     setMemoForm((current) => ({ ...emptyMemo, companyId: current.companyId || companies[0]?.id || "" }));
     setMemoMode("create");
     setEditingMemoId(null);
@@ -304,7 +287,6 @@ export function AdminDashboardPage() {
       await updateIndustryReport(token, editingIndustryReportId, payload);
     }
 
-    setIndustryReports(await fetchAdminIndustryReports(token));
     setIndustryReportForm((current) => ({ ...emptyIndustryReport, companyId: current.companyId || companies[0]?.id || null }));
     setIndustryReportMode("create");
     setEditingIndustryReportId(null);
@@ -326,7 +308,6 @@ export function AdminDashboardPage() {
       await updateMarketOutlook(token, editingMarketOutlookId, payload);
     }
 
-    setMarketOutlooks(await fetchAdminMarketOutlooks(token));
     setMarketOutlookForm((current) => ({ ...emptyMarketOutlook, companyId: current.companyId || companies[0]?.id || null }));
     setMarketOutlookMode("create");
     setEditingMarketOutlookId(null);
@@ -376,28 +357,6 @@ export function AdminDashboardPage() {
             <button type="submit">Save Company</button>
           </form>
 
-          <div className="admin-list">
-            {companies.map((company) => (
-              <article key={company.id} className="admin-list-item">
-                <div>
-                  <strong>{company.name}</strong>
-                  <span>{company.ticker} · {company.status} · {company._count.memos} memos</span>
-                </div>
-                <div className="inline-actions">
-                  <button type="button" className="ghost-button" onClick={() => { setCompanyMode("edit"); setCompanyForm({
-                    name: company.name,
-                    ticker: company.ticker,
-                    exchange: company.exchange,
-                    sector: company.sector,
-                    industry: company.industry,
-                    description: company.description ?? "",
-                    status: company.status
-                  }); setEditingCompanyId(company.id); }}>Edit</button>
-                  <button type="button" className="danger-button" onClick={async () => { if (!token) return; await deleteCompany(token, company.id); await refreshCompanies(token); }}>Delete</button>
-                </div>
-              </article>
-            ))}
-          </div>
         </article>
 
         <article className="card admin-panel">
@@ -434,6 +393,8 @@ export function AdminDashboardPage() {
             <label>Investment horizon<input placeholder="e.g. 12 months" value={memoForm.investmentHorizon} onChange={(event) => setMemoForm({ ...memoForm, investmentHorizon: event.target.value })} /></label>
             <label>Executive summary<textarea placeholder="At least 20 characters summarizing the idea" value={memoForm.executiveSummary} onChange={(event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value })} rows={5} minLength={20} required /></label>
             <label>Investment thesis<textarea placeholder="At least 20 characters explaining the thesis and catalysts" value={memoForm.thesis} onChange={(event) => setMemoForm({ ...memoForm, thesis: event.target.value })} rows={6} minLength={20} required /></label>
+            <label>Key Catalysts<textarea placeholder="What could drive the thesis forward" value={memoForm.keyCatalysts} onChange={(event) => setMemoForm({ ...memoForm, keyCatalysts: event.target.value })} rows={4} required /></label>
+            <label>Key Risks<textarea placeholder="What could weaken or invalidate the thesis" value={memoForm.keyRisks} onChange={(event) => setMemoForm({ ...memoForm, keyRisks: event.target.value })} rows={4} required /></label>
             {memoValidationError ? <p className="auth-error">{memoValidationError}</p> : null}
             <label>Publication status<select value={memoForm.status} onChange={(event) => setMemoForm({ ...memoForm, status: event.target.value })}>
               <option value="draft">Draft</option>
@@ -444,35 +405,6 @@ export function AdminDashboardPage() {
             <button type="submit">Save Memo</button>
           </form>
 
-          <div className="admin-list">
-            {memos.map((memo) => (
-              <article key={memo.id} className="admin-list-item">
-                <div>
-                  <strong>{memo.title}</strong>
-                  <span>{memo.company.name} · {memo.recommendation} · {memo.status}</span>
-                </div>
-                <div className="inline-actions">
-                  <button type="button" className="ghost-button" onClick={() => { setMemoMode("edit"); setMemoForm({
-                    companyId: memo.companyId,
-                    authorId: memo.authorId,
-                    title: memo.title,
-                    slug: memo.slug,
-                    recommendation: memo.recommendation,
-                    targetPrice: Number(memo.targetPrice),
-                    currentPrice: Number(memo.currentPrice),
-                    expectedReturn: Number(memo.expectedReturn),
-                    investmentHorizon: memo.investmentHorizon,
-                    convictionLevel: memo.convictionLevel,
-                    executiveSummary: memo.executiveSummary,
-                    thesis: memo.thesis,
-                    status: memo.status,
-                    publishedAt: memo.publishedAt
-                  }); setEditingMemoId(memo.id); }}>Edit</button>
-                  <button type="button" className="danger-button" onClick={async () => { if (!token) return; await deleteMemo(token, memo.id); setMemos(await fetchAdminMemos(token)); }}>Delete</button>
-                </div>
-              </article>
-            ))}
-          </div>
         </article>
       </section>
 

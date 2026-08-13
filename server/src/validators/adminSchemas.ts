@@ -31,6 +31,8 @@ export const memoUpsertSchema = z.object({
   convictionLevel: z.coerce.number().int().min(1).max(10),
   executiveSummary: z.string().min(20).max(10000),
   thesis: z.string().min(20).max(20000),
+  keyCatalysts: z.string().min(1).max(10000),
+  keyRisks: z.string().min(1).max(10000),
   status: entityStatusSchema.default("draft"),
   publishedAt: z.string().datetime().optional().nullable()
 });
@@ -104,7 +106,7 @@ export const valuationModelUpsertSchema = z.object({
   terminalGrowthRate: z.coerce.number(),
   enterpriseValue: z.coerce.number(),
   equityValue: z.coerce.number(),
-  sharesOutstanding: z.coerce.number().positive(),
+  sharesOutstanding: z.coerce.number().int().positive(),
   fairValue: z.coerce.number(),
   upsideDownside: z.coerce.number(),
   valuationConclusion: z.string().min(10).max(20000)

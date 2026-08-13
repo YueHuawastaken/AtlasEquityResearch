@@ -42,7 +42,6 @@ interface ValuationModelsAdminPanelProps {
 export function ValuationModelsAdminPanel({ companyRefreshKey = 0 }: ValuationModelsAdminPanelProps) {
   const token = localStorage.getItem("atlas-admin-token");
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
-  const [items, setItems] = useState<AdminValuationModel[]>([]);
   const [form, setForm] = useState<ValuationModelPayload>(emptyForm);
   const [mode, setMode] = useState<Mode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -59,11 +58,6 @@ export function ValuationModelsAdminPanel({ companyRefreshKey = 0 }: ValuationMo
       if (!form.companyId && companyItems[0]) {
         setForm((current) => ({ ...current, companyId: companyItems[0].id }));
       }
-    });
-
-    void fetchAdminValuationModels(token).then((valuationItems) => {
-      if (!active) return;
-      setItems(valuationItems);
     });
 
     return () => {
@@ -97,9 +91,10 @@ export function ValuationModelsAdminPanel({ companyRefreshKey = 0 }: ValuationMo
       ["Upside / downside", form.upsideDownside]
     ];
     const invalidPositive = positiveFields.find(([, value]) => !Number.isFinite(value) || value <= 0);
+    const invalidShares = !Number.isSafeInteger(form.sharesOutstanding);
     const invalidNumeric = numericFields.find(([, value]) => !Number.isFinite(value));
-    if (!form.companyId || !form.title.trim() || form.title.trim().length < 2 || !form.slug.trim() || form.slug.trim().length < 2 || invalidPositive || invalidNumeric || form.valuationConclusion.trim().length < 10) {
-      setValidationError(invalidPositive ? `${invalidPositive[0]} must be greater than 0.` : invalidNumeric ? `${invalidNumeric[0]} must be a valid number.` : !form.companyId ? "Select a company." : form.valuationConclusion.trim().length < 10 ? "Valuation conclusion must be at least 10 characters." : "Title and slug must each be at least 2 characters.");
+    if (!form.companyId || !form.title.trim() || form.title.trim().length < 2 || !form.slug.trim() || form.slug.trim().length < 2 || invalidPositive || invalidShares || invalidNumeric || form.valuationConclusion.trim().length < 10) {
+      setValidationError(invalidShares ? "Shares outstanding must be a positive whole number." : invalidPositive ? `${invalidPositive[0]} must be greater than 0.` : invalidNumeric ? `${invalidNumeric[0]} must be a valid number.` : !form.companyId ? "Select a company." : form.valuationConclusion.trim().length < 10 ? "Valuation conclusion must be at least 10 characters." : "Title and slug must each be at least 2 characters.");
       return;
     }
 
@@ -122,7 +117,6 @@ export function ValuationModelsAdminPanel({ companyRefreshKey = 0 }: ValuationMo
       return;
     }
 
-    setItems(await fetchAdminValuationModels(token));
     setForm((current) => ({ ...emptyForm, companyId: current.companyId || companies[0]?.id || "" }));
     setMode("create");
     setEditingId(null);
@@ -166,7 +160,7 @@ export function ValuationModelsAdminPanel({ companyRefreshKey = 0 }: ValuationMo
         </div>
         <div className="inline-grid">
           <label>Equity value<input type="number" step="0.01" placeholder="Equity value after debt and cash adjustments" value={form.equityValue} onChange={(event) => setForm({ ...form, equityValue: Number(event.target.value) })} required /></label>
-          <label>Shares outstanding<input type="number" min="0.0001" step="0.01" placeholder="Fully diluted share count" value={form.sharesOutstanding} onChange={(event) => setForm({ ...form, sharesOutstanding: Number(event.target.value) })} required /></label>
+          <label>Shares outstanding<input type="number" min="1" step="1" inputMode="numeric" placeholder="e.g. 7430000000" value={form.sharesOutstanding || ""} onChange={(event) => setForm({ ...form, sharesOutstanding: Number(event.target.value) })} required /></label>
         </div>
         <div className="inline-grid">
           <label>Fair value per share<input type="number" step="0.01" placeholder="Calculated fair value per share" value={form.fairValue} onChange={(event) => setForm({ ...form, fairValue: Number(event.target.value) })} required /></label>
@@ -182,41 +176,7 @@ export function ValuationModelsAdminPanel({ companyRefreshKey = 0 }: ValuationMo
         <button type="submit">Save Model</button>
       </form>
 
-      <div className="admin-list">
-        {items.map((item) => (
-          <article key={item.id} className="admin-list-item">
-            <div>
-              <strong>{item.title}</strong>
-              <span>{item.company.name} · fair value {item.fairValue} · {item.status}</span>
-            </div>
-            <div className="inline-actions">
-              <button type="button" className="ghost-button" onClick={() => { setMode("edit"); setEditingId(item.id); setForm({
-                companyId: item.company.id,
-                title: item.title,
-                slug: item.slug,
-                currentSharePrice: Number(item.currentSharePrice),
-                revenue: Number(item.revenue),
-                revenueGrowth: Number(item.revenueGrowth),
-                ebitdaOrEbit: Number(item.ebitdaOrEbit),
-                freeCashFlow: Number(item.freeCashFlow),
-                wacc: Number(item.wacc),
-                terminalGrowthRate: Number(item.terminalGrowthRate),
-                enterpriseValue: Number(item.enterpriseValue),
-                equityValue: Number(item.equityValue),
-                sharesOutstanding: Number(item.sharesOutstanding),
-                fairValue: Number(item.fairValue),
-                upsideDownside: Number(item.upsideDownside),
-                valuationConclusion: item.valuationConclusion,
-                status: item.status,
-                publishedAt: item.publishedAt
-              }); }}>Edit</button>
-              <button type="button" className="danger-button" onClick={async () => { await deleteValuationModel(token, item.id); setItems(await fetchAdminValuationModels(token)); }}>Delete</button>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <AttachmentManager scope="valuationModel" parentId={editingId ?? items[0]?.id ?? null} title="Valuation Model Files" />
+      <AttachmentManager scope="valuationModel" parentId={editingId} title="Valuation Model Files" />
     </article>
   );
 }

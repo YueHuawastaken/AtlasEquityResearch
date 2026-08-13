@@ -91,7 +91,6 @@ export function MarketOutlooksAdminPanel({ companyRefreshKey = 0 }: MarketOutloo
       await updateMarketOutlook(token, editingId, payload);
     }
 
-    setItems(await fetchAdminMarketOutlooks(token));
     setForm((current) => ({ ...emptyForm, companyId: current.companyId || companies[0]?.id || null }));
     setMode("create");
     setEditingId(null);
@@ -145,48 +144,7 @@ export function MarketOutlooksAdminPanel({ companyRefreshKey = 0 }: MarketOutloo
         <button type="submit">Save Outlook</button>
       </form>
 
-      <div className="admin-list">
-        {items.map((item) => (
-          <article key={item.id} className="admin-list-item">
-            <div>
-              <strong>{item.title}</strong>
-              <span>{item.company ? `${item.company.name} · ` : ""}{item.status}</span>
-            </div>
-            <div className="inline-actions">
-              <button type="button" className="ghost-button" onClick={() => { setMode("edit"); setEditingId(item.id); setForm({
-                companyId: item.company?.id ?? null,
-                title: item.title,
-                slug: item.slug,
-                month: item.month,
-                executiveSummary: item.executiveSummary,
-                federalReserve: item.federalReserve,
-                interestRates: item.interestRates,
-                inflation: item.inflation,
-                gdp: item.gdp,
-                employment: item.employment,
-                geopolitics: item.geopolitics,
-                currencies: item.currencies,
-                commodities: item.commodities,
-                technology: item.technology,
-                ai: item.ai,
-                semiconductors: item.semiconductors,
-                healthcare: item.healthcare,
-                consumer: item.consumer,
-                financials: item.financials,
-                marketValuation: item.marketValuation,
-                sectorOutlook: item.sectorOutlook,
-                portfolioPositioning: item.portfolioPositioning,
-                conclusion: item.conclusion,
-                status: item.status,
-                publishedAt: item.publishedAt
-              }); }}>Edit</button>
-              <button type="button" className="danger-button" onClick={async () => { await deleteMarketOutlook(token, item.id); setItems(await fetchAdminMarketOutlooks(token)); }}>Delete</button>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <AttachmentManager scope="marketOutlook" parentId={editingId ?? items[0]?.id ?? null} title="Market Outlook Files" />
+      <AttachmentManager scope="marketOutlook" parentId={editingId} title="Market Outlook Files" />
     </article>
   );
 }

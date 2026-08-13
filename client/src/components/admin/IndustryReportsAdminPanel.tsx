@@ -109,7 +109,6 @@ export function IndustryReportsAdminPanel({ companyRefreshKey = 0 }: IndustryRep
       return;
     }
 
-    setItems(await fetchAdminIndustryReports(token));
     setForm((current) => ({ ...emptyForm, companyId: current.companyId || companies[0]?.id || null }));
     setMode("create");
     setEditingId(null);
@@ -162,44 +161,7 @@ export function IndustryReportsAdminPanel({ companyRefreshKey = 0 }: IndustryRep
         <button type="submit">Save Report</button>
       </form>
 
-      <div className="admin-list">
-        {items.map((item) => (
-          <article key={item.id} className="admin-list-item">
-            <div>
-              <strong>{item.title}</strong>
-              <span>{item.company ? `${item.company.name} · ` : ""}{item.status}</span>
-            </div>
-            <div className="inline-actions">
-              <button type="button" className="ghost-button" onClick={() => { setMode("edit"); setEditingId(item.id); setForm({
-                companyId: item.company?.id ?? null,
-                title: item.title,
-                slug: item.slug,
-                executiveSummary: item.executiveSummary,
-                overview: item.overview,
-                marketSize: item.marketSize,
-                tam: item.tam,
-                sam: item.sam,
-                som: item.som,
-                growth: item.growth,
-                porterFiveForces: item.porterFiveForces,
-                valueChain: item.valueChain,
-                competitors: item.competitors,
-                supplyChain: item.supplyChain,
-                demandDrivers: item.demandDrivers,
-                technologyTrends: item.technologyTrends,
-                regulation: item.regulation,
-                risks: item.risks,
-                investmentImplications: item.investmentImplications,
-                status: item.status,
-                publishedAt: item.publishedAt
-              }); }}>Edit</button>
-              <button type="button" className="danger-button" onClick={async () => { await deleteIndustryReport(token, item.id); setItems(await fetchAdminIndustryReports(token)); }}>Delete</button>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <AttachmentManager scope="industryReport" parentId={editingId ?? items[0]?.id ?? null} title="Industry Report Files" />
+      <AttachmentManager scope="industryReport" parentId={editingId} title="Industry Report Files" />
     </article>
   );
 }

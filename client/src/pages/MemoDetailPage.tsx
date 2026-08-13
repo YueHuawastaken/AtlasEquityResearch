@@ -70,6 +70,11 @@ export function MemoDetailPage() {
         <p>{memo.thesis}</p>
       </section>
 
+      <section className="grid-2">
+        <article className="card content-card"><h2>Key Catalysts</h2><p>{memo.keyCatalysts}</p></article>
+        <article className="card content-card"><h2>Key Risks</h2><p>{memo.keyRisks}</p></article>
+      </section>
+
       <section className="card content-card">
         <h2>Metadata</h2>
         <div className="meta-grid">

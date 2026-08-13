@@ -40,7 +40,7 @@ export function ValuationModelDetailPage() {
           <div className="stack-row"><strong>Terminal Growth Rate</strong><span>{item.terminalGrowthRate}</span></div>
           <div className="stack-row"><strong>Enterprise Value</strong><span>{item.enterpriseValue}</span></div>
           <div className="stack-row"><strong>Equity Value</strong><span>{item.equityValue}</span></div>
-          <div className="stack-row"><strong>Shares Outstanding</strong><span>{item.sharesOutstanding}</span></div>
+          <div className="stack-row"><strong>Shares Outstanding</strong><span>{Number(item.sharesOutstanding).toLocaleString("en-US", { maximumFractionDigits: 0 })}</span></div>
           <div className="stack-row"><strong>Fair Value / Target Price</strong><span>{item.fairValue}</span></div>
           <div className="stack-row"><strong>Upside / Downside</strong><span>{item.upsideDownside}</span></div>
         </div>

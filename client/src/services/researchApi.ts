@@ -86,6 +86,8 @@ export interface MemoDetail extends MemoListItem {
   investmentHorizon: string;
   executiveSummary: string;
   thesis: string;
+  keyCatalysts: string;
+  keyRisks: string;
   company: {
     id: string;
     name: string;

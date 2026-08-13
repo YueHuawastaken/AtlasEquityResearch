@@ -51,6 +51,8 @@ export interface AdminMemo {
   convictionLevel: number;
   executiveSummary: string;
   thesis: string;
+  keyCatalysts: string;
+  keyRisks: string;
   status: string;
   publishedAt: string | null;
   company: {
@@ -83,6 +85,8 @@ export interface MemoPayload {
   convictionLevel: number;
   executiveSummary: string;
   thesis: string;
+  keyCatalysts: string;
+  keyRisks: string;
   status: string;
   publishedAt?: string | null;
 }

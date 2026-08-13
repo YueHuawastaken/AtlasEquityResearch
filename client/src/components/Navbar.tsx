@@ -8,7 +8,8 @@ const links = [
   { to: "/companies", label: "Companies" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
-  { to: "/admin", label: "Admin" }
+  { to: "/admin", label: "Admin" },
+  { to: "/admin/storage", label: "Admin Storage" }
 ];
 
 export function Navbar() {

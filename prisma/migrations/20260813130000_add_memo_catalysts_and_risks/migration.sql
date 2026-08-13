@@ -1,0 +1,7 @@
+ALTER TABLE "InvestmentMemo"
+ADD COLUMN "keyCatalysts" TEXT NOT NULL DEFAULT '',
+ADD COLUMN "keyRisks" TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE "InvestmentMemo"
+ALTER COLUMN "keyCatalysts" DROP DEFAULT,
+ALTER COLUMN "keyRisks" DROP DEFAULT;
