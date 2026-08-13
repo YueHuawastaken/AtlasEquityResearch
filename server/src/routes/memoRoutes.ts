@@ -71,11 +71,18 @@ memoRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
 memoRouter.get("/:memoId", async (req: Request<{ memoId: string }>, res: Response, next: NextFunction) => {
   try {
     const memo = await prisma.investmentMemo.findFirst({
-      where: { id: req.params.memoId, status: "published" },
+      where: { OR: [{ id: req.params.memoId }, { slug: req.params.memoId }], status: "published" },
       include: {
         company: true,
         tags: { include: { tag: true } },
-        attachments: true,
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            fileType: true,
+            url: true
+          }
+        },
         author: {
           select: {
             id: true,

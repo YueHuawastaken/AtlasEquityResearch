@@ -6,6 +6,15 @@ function authHeaders(token) {
         }
     };
 }
+export function getAdminApiErrorMessage(error, fallback) {
+    const response = error.response;
+    const data = response?.data;
+    const fieldErrors = data?.issues?.fieldErrors;
+    const details = fieldErrors
+        ? Object.entries(fieldErrors).flatMap(([field, messages]) => messages.map((message) => `${field}: ${message}`)).join(" ")
+        : "";
+    return [data?.message, details].filter(Boolean).join(" ") || (error instanceof Error ? error.message : fallback);
+}
 export async function login(email, password) {
     const response = await api.post("/api/auth/login", { email, password });
     return response.data;

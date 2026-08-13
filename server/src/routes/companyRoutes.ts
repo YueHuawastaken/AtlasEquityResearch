@@ -60,14 +60,16 @@ companyRouter.get("/", async (req, res, next) => {
 companyRouter.get("/:companyId", async (req, res, next) => {
   try {
     const company = await prisma.company.findFirst({
-      where: { id: req.params.companyId, status: "published" },
+      where: {
+        status: "published",
+        OR: [{ id: req.params.companyId }, { ticker: { equals: req.params.companyId, mode: "insensitive" } }]
+      },
       include: {
         _count: {
           select: {
             memos: true,
             reports: true,
-            outlooks: true,
-            valuationModels: true
+            outlooks: true
           }
         },
         memos: {
@@ -111,22 +113,6 @@ companyRouter.get("/:companyId", async (req, res, next) => {
             updatedAt: true
           }
         },
-        valuationModels: {
-          where: { status: "published" },
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            fairValue: true,
-            currentSharePrice: true,
-            upsideDownside: true,
-            status: true,
-            publishedAt: true,
-            createdAt: true,
-            updatedAt: true
-          }
-        }
       }
     });
 
@@ -134,7 +120,7 @@ companyRouter.get("/:companyId", async (req, res, next) => {
       return res.status(404).json({ message: "Company not found" });
     }
 
-    res.json({ item: company });
+    res.json({ item: { ...company, valuationModels: [] } });
   } catch (error) {
     next(error);
   }

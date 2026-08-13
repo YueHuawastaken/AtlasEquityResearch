@@ -174,29 +174,32 @@ export function AdminDashboardPage() {
 
     let active = true;
 
+    void fetchAdminCompanies(token).then((companyItems) => {
+      if (!active) return;
+      setCompanies(companyItems);
+      if (!memoForm.companyId && companyItems[0]) {
+        setMemoForm((current) => ({ ...current, companyId: companyItems[0].id }));
+      }
+      if (!industryReportForm.companyId && companyItems[0]) {
+        setIndustryReportForm((current) => ({ ...current, companyId: companyItems[0].id }));
+      }
+      if (!marketOutlookForm.companyId && companyItems[0]) {
+        setMarketOutlookForm((current) => ({ ...current, companyId: companyItems[0].id }));
+      }
+    });
+
     void Promise.all([
       fetchOverview(token),
-      fetchAdminCompanies(token),
       fetchAdminMemos(token),
       fetchAdminIndustryReports(token),
       fetchAdminMarketOutlooks(token)
     ])
-      .then(([overviewData, companyItems, memoItems, reportItems, outlookItems]) => {
+      .then(([overviewData, memoItems, reportItems, outlookItems]) => {
         if (!active) return;
         setOverview(overviewData.stats);
-        setCompanies(companyItems);
         setMemos(memoItems);
         setIndustryReports(reportItems);
         setMarketOutlooks(outlookItems);
-        if (!memoForm.companyId && companyItems[0]) {
-          setMemoForm((current) => ({ ...current, companyId: companyItems[0].id }));
-        }
-        if (!industryReportForm.companyId && companyItems[0]) {
-          setIndustryReportForm((current) => ({ ...current, companyId: companyItems[0].id }));
-        }
-        if (!marketOutlookForm.companyId && companyItems[0]) {
-          setMarketOutlookForm((current) => ({ ...current, companyId: companyItems[0].id }));
-        }
       });
 
     return () => {
@@ -407,39 +410,37 @@ export function AdminDashboardPage() {
           </div>
 
           <form className="admin-form" onSubmit={submitMemo}>
-            <select value={memoForm.companyId} onChange={(event) => setMemoForm({ ...memoForm, companyId: event.target.value })} required>
+            <label>Company<select value={memoForm.companyId} onChange={(event) => setMemoForm({ ...memoForm, companyId: event.target.value })} required>
               <option value="">Select company</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>{company.name} ({company.ticker})</option>
-              ))}
-            </select>
-            <input placeholder="Title" value={memoForm.title} onChange={(event) => setMemoForm({ ...memoForm, title: event.target.value })} required />
-            <input placeholder="Slug" value={memoForm.slug} onChange={(event) => setMemoForm({ ...memoForm, slug: event.target.value })} required />
-            <select value={memoForm.recommendation} onChange={(event) => setMemoForm({ ...memoForm, recommendation: event.target.value })}>
+              {companies.map((company) => <option key={company.id} value={company.id}>{company.name} ({company.ticker})</option>)}
+            </select></label>
+            <label>Memo title<input placeholder="e.g. Acme investment thesis" value={memoForm.title} onChange={(event) => setMemoForm({ ...memoForm, title: event.target.value })} required /></label>
+            <label>URL slug<input placeholder="e.g. acme-investment-thesis-2026" value={memoForm.slug} onChange={(event) => setMemoForm({ ...memoForm, slug: event.target.value })} required /></label>
+            <label>Recommendation<select value={memoForm.recommendation} onChange={(event) => setMemoForm({ ...memoForm, recommendation: event.target.value })}>
               <option value="buy">Buy</option>
               <option value="overweight">Overweight</option>
               <option value="hold">Hold</option>
               <option value="underweight">Underweight</option>
               <option value="sell">Sell</option>
-            </select>
+            </select></label>
             <div className="inline-grid">
-              <input type="number" step="0.01" min="0.01" placeholder="Target Price" value={memoForm.targetPrice} onChange={(event) => setMemoForm({ ...memoForm, targetPrice: Number(event.target.value) })} required />
-              <input type="number" step="0.01" min="0.01" placeholder="Current Price" value={memoForm.currentPrice} onChange={(event) => setMemoForm({ ...memoForm, currentPrice: Number(event.target.value) })} required />
+              <label>Target price<input type="number" step="0.01" min="0.01" placeholder="12-month target price" value={memoForm.targetPrice} onChange={(event) => setMemoForm({ ...memoForm, targetPrice: Number(event.target.value) })} required /></label>
+              <label>Current price<input type="number" step="0.01" min="0.01" placeholder="Latest share price" value={memoForm.currentPrice} onChange={(event) => setMemoForm({ ...memoForm, currentPrice: Number(event.target.value) })} required /></label>
             </div>
             <div className="inline-grid">
-              <input type="number" step="0.01" placeholder="Expected Return" value={memoForm.expectedReturn} onChange={(event) => setMemoForm({ ...memoForm, expectedReturn: Number(event.target.value) })} />
-              <input type="number" min={1} max={10} placeholder="Conviction" value={memoForm.convictionLevel} onChange={(event) => setMemoForm({ ...memoForm, convictionLevel: Number(event.target.value) })} />
+              <label>Expected return<input type="number" step="0.01" placeholder="Expected return as decimal or percentage" value={memoForm.expectedReturn} onChange={(event) => setMemoForm({ ...memoForm, expectedReturn: Number(event.target.value) })} /></label>
+              <label>Conviction (1-10)<input type="number" min={1} max={10} placeholder="Confidence from 1 to 10" value={memoForm.convictionLevel} onChange={(event) => setMemoForm({ ...memoForm, convictionLevel: Number(event.target.value) })} /></label>
             </div>
-            <input placeholder="Investment Horizon" value={memoForm.investmentHorizon} onChange={(event) => setMemoForm({ ...memoForm, investmentHorizon: event.target.value })} />
-            <textarea placeholder="Executive Summary" value={memoForm.executiveSummary} onChange={(event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value })} rows={5} minLength={20} required />
-            <textarea placeholder="Thesis" value={memoForm.thesis} onChange={(event) => setMemoForm({ ...memoForm, thesis: event.target.value })} rows={6} minLength={20} required />
+            <label>Investment horizon<input placeholder="e.g. 12 months" value={memoForm.investmentHorizon} onChange={(event) => setMemoForm({ ...memoForm, investmentHorizon: event.target.value })} /></label>
+            <label>Executive summary<textarea placeholder="At least 20 characters summarizing the idea" value={memoForm.executiveSummary} onChange={(event) => setMemoForm({ ...memoForm, executiveSummary: event.target.value })} rows={5} minLength={20} required /></label>
+            <label>Investment thesis<textarea placeholder="At least 20 characters explaining the thesis and catalysts" value={memoForm.thesis} onChange={(event) => setMemoForm({ ...memoForm, thesis: event.target.value })} rows={6} minLength={20} required /></label>
             {memoValidationError ? <p className="auth-error">{memoValidationError}</p> : null}
-            <select value={memoForm.status} onChange={(event) => setMemoForm({ ...memoForm, status: event.target.value })}>
+            <label>Publication status<select value={memoForm.status} onChange={(event) => setMemoForm({ ...memoForm, status: event.target.value })}>
               <option value="draft">Draft</option>
               <option value="published">Published</option>
               <option value="archived">Archived</option>
-            </select>
-            <input placeholder="Published At (ISO optional)" value={memoForm.publishedAt ?? ""} onChange={(event) => setMemoForm({ ...memoForm, publishedAt: event.target.value })} />
+            </select></label>
+            <label>Published at (ISO optional)<input placeholder="2026-08-13T12:00:00.000Z" value={memoForm.publishedAt ?? ""} onChange={(event) => setMemoForm({ ...memoForm, publishedAt: event.target.value })} /></label>
             <button type="submit">Save Memo</button>
           </form>
 

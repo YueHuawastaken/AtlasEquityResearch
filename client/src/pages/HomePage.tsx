@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../services/api.js";
 
 interface DashboardStat {
@@ -101,7 +102,7 @@ export function HomePage() {
           <p className="eyebrow">Featured Company</p>
           {payload.featured?.company ? (
             <>
-              <h2>{payload.featured.company.name}</h2>
+              <h2><Link to={`/companies/${payload.featured.company.id}`}>{payload.featured.company.name}</Link></h2>
               <p>{payload.featured.company.ticker} · {payload.featured.company.sector} · {payload.featured.company.industry}</p>
             </>
           ) : (
@@ -113,7 +114,7 @@ export function HomePage() {
           <p className="eyebrow">Latest Memo</p>
           {payload.featured?.memo ? (
             <>
-              <h2>{payload.featured.memo.title}</h2>
+              <h2><Link to={`/research/${payload.featured.memo.id}`}>{payload.featured.memo.title}</Link></h2>
               <p>{payload.featured.memo.company.name} ({payload.featured.memo.company.ticker}) · {payload.featured.memo.recommendation}</p>
             </>
           ) : (

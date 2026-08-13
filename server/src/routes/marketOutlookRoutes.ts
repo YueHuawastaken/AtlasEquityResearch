@@ -53,11 +53,18 @@ marketOutlookRouter.get("/", async (req: Request, res: Response, next: NextFunct
 marketOutlookRouter.get("/:outlookId", async (req: Request<{ outlookId: string }>, res: Response, next: NextFunction) => {
   try {
     const item = await prisma.marketOutlook.findFirst({
-      where: { id: req.params.outlookId, status: "published" },
+      where: { OR: [{ id: req.params.outlookId }, { slug: req.params.outlookId }], status: "published" },
       include: {
         company: true,
         author: { select: { id: true, name: true, email: true } },
-        attachments: true
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            fileType: true,
+            url: true
+          }
+        }
       }
     });
 

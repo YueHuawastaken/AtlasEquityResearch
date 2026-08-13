@@ -52,11 +52,18 @@ industryReportRouter.get("/", async (req: Request, res: Response, next: NextFunc
 industryReportRouter.get("/:reportId", async (req: Request<{ reportId: string }>, res: Response, next: NextFunction) => {
   try {
     const item = await prisma.industryReport.findFirst({
-      where: { id: req.params.reportId, status: "published" },
+      where: { OR: [{ id: req.params.reportId }, { slug: req.params.reportId }], status: "published" },
       include: {
         company: true,
         author: { select: { id: true, name: true, email: true } },
-        attachments: true
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            fileType: true,
+            url: true
+          }
+        }
       }
     });
 
