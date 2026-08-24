@@ -114,6 +114,7 @@ export function AdminDashboardPage() {
   const token = localStorage.getItem("atlas-admin-token");
   const [meLoaded, setMeLoaded] = useState(false);
   const [allowed, setAllowed] = useState(false);
+  const [tokenInvalid, setTokenInvalid] = useState(false);
   const [overview, setOverview] = useState({ companyCount: 0, memoCount: 0, reportCount: 0, outlookCount: 0, valuationModelCount: 0, draftCount: 0, contactCount: 0 });
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [companyForm, setCompanyForm] = useState<CompanyPayload>(emptyCompany);
@@ -151,7 +152,10 @@ export function AdminDashboardPage() {
         setAllowed(user.role === "admin" || user.role === "editor");
       })
       .catch(() => {
-        if (active) setAllowed(false);
+        if (!active) return;
+        localStorage.removeItem("atlas-admin-token");
+        setTokenInvalid(true);
+        setAllowed(false);
       })
       .finally(() => {
         if (active) setMeLoaded(true);
@@ -196,7 +200,7 @@ export function AdminDashboardPage() {
     return <div className="page-shell">Loading admin session…</div>;
   }
 
-  if (!token) {
+  if (!token || tokenInvalid) {
     return <Navigate to="/admin/login" replace />;
   }
 

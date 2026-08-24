@@ -7,9 +7,7 @@ const links = [
     { to: "/valuation-models", label: "Valuation Models" },
     { to: "/companies", label: "Companies" },
     { to: "/about", label: "About" },
-    { to: "/contact", label: "Contact" },
-    { to: "/admin", label: "Admin" },
-    { to: "/admin/storage", label: "Admin Storage" }
+    { to: "/contact", label: "Contact" }
 ];
 export function Navbar() {
     return (_jsx("header", { className: "navbar", children: _jsxs("div", { className: "container navbar-inner", children: [_jsxs(NavLink, { to: "/", className: "brand", children: [_jsx("span", { className: "brand-mark", children: "A" }), _jsxs("span", { children: [_jsx("strong", { children: "Atlas Equity Research" }), _jsx("small", { children: "Independent Equity Research Platform" })] })] }), _jsx("nav", { className: "nav-links", "aria-label": "Primary", children: links.map((link) => (_jsx(NavLink, { to: link.to, className: ({ isActive }) => (isActive ? "nav-link active" : "nav-link"), children: link.label }, link.to))) })] }) }));

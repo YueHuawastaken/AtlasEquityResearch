@@ -498,6 +498,12 @@ td span,
   font: inherit;
 }
 
+.contact-message-list {
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
 .inline-actions {
   display: flex;
   gap: 0.5rem;

@@ -7,9 +7,7 @@ const links = [
   { to: "/valuation-models", label: "Valuation Models" },
   { to: "/companies", label: "Companies" },
   { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-  { to: "/admin", label: "Admin" },
-  { to: "/admin/storage", label: "Admin Storage" }
+  { to: "/contact", label: "Contact" }
 ];
 
 export function Navbar() {

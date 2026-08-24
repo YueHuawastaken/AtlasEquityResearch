@@ -71,7 +71,7 @@ export function ContactMessagesAdminPanel() {
         <button type="submit" className="ghost-button">Filter</button>
       </form>
 
-      <div className="admin-list">
+      <div className="admin-list contact-message-list">
         {loading ? (
           <div className="table-empty">Loading messages…</div>
         ) : items.length ? (

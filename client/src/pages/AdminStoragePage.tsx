@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { AttachmentManager } from "../components/admin/AttachmentManager.js";
 import {
   deleteIndustryReport,
   deleteMarketOutlook,
@@ -19,7 +20,8 @@ import {
   type AdminIndustryReport,
   type AdminMarketOutlook,
   type AdminMemo,
-  type AdminValuationModel
+  type AdminValuationModel,
+  type AttachmentScope
 } from "../services/adminApi.js";
 
 type ResearchRecord = AdminMemo | AdminIndustryReport | AdminMarketOutlook | AdminValuationModel;
@@ -48,9 +50,17 @@ function fieldLabel(field: string) {
   return field.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
 }
 
+function attachmentScope(record: ResearchRecord): AttachmentScope {
+  if ("recommendation" in record) return "memo";
+  if ("month" in record) return "marketOutlook";
+  if ("valuationConclusion" in record) return "valuationModel";
+  return "industryReport";
+}
+
 export function AdminStoragePage() {
   const token = localStorage.getItem("atlas-admin-token");
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [tokenInvalid, setTokenInvalid] = useState(false);
   const [companies, setCompanies] = useState<AdminCompany[]>([]);
   const [records, setRecords] = useState<ResearchRecord[]>([]);
   const [query, setQuery] = useState("");
@@ -71,7 +81,11 @@ export function AdminStoragePage() {
 
   useEffect(() => {
     if (!token) return;
-    void fetchAdminMe(token).then((user) => setAllowed(user.role === "admin" || user.role === "editor")).catch(() => setAllowed(false));
+    void fetchAdminMe(token).then((user) => setAllowed(user.role === "admin" || user.role === "editor")).catch(() => {
+      localStorage.removeItem("atlas-admin-token");
+      setTokenInvalid(true);
+      setAllowed(false);
+    });
     void load();
   }, [token]);
 
@@ -82,7 +96,7 @@ export function AdminStoragePage() {
   const selectedCompany = companies.find((company) => company.id === selectedCompanyId);
   const selectedRecords = records.filter((record) => record.companyId === selectedCompanyId);
 
-  if (!token) return <Navigate to="/admin/login" replace />;
+  if (!token || tokenInvalid) return <Navigate to="/admin/login" replace />;
   if (allowed === null) return <div className="page-shell">Loading admin session…</div>;
   if (!allowed) return <div className="page-shell">Access denied.</div>;
 
@@ -124,6 +138,7 @@ export function AdminStoragePage() {
       {selectedRecords.length ? <div className="stack-list">{selectedRecords.map((record) => editingId === record.id ? <div key={record.id} className="admin-form">
         {editableFields(record).map((field) => <label key={field}>{fieldLabel(field)}{field === "status" ? <select value={String(editForm[field] ?? "draft")} onChange={(event) => setEditForm({ ...editForm, [field]: event.target.value })}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select> : field === "recommendation" ? <select value={String(editForm[field] ?? "hold")} onChange={(event) => setEditForm({ ...editForm, [field]: event.target.value })}><option value="buy">Buy</option><option value="overweight">Overweight</option><option value="hold">Hold</option><option value="underweight">Underweight</option><option value="sell">Sell</option></select> : ["executiveSummary", "thesis", "keyCatalysts", "keyRisks", "valuationConclusion", "overview", "growth", "porterFiveForces", "valueChain", "competitors", "supplyChain", "demandDrivers", "technologyTrends", "regulation", "risks", "investmentImplications", "federalReserve", "interestRates", "inflation", "gdp", "employment", "geopolitics", "currencies", "commodities", "technology", "ai", "semiconductors", "healthcare", "consumer", "financials", "marketValuation", "sectorOutlook", "portfolioPositioning", "conclusion"].includes(field) ? <textarea rows={4} value={String(editForm[field] ?? "")} onChange={(event) => setEditForm({ ...editForm, [field]: event.target.value })} /> : <input type={numericFields.has(field) ? "number" : "text"} step={numericFields.has(field) ? "any" : undefined} value={String(editForm[field] ?? "")} onChange={(event) => setEditForm({ ...editForm, [field]: numericFields.has(field) ? Number(event.target.value) : event.target.value })} />}</label>)}
         <div className="inline-actions"><button type="button" onClick={() => void saveEdit(record)}>Save</button><button type="button" className="ghost-button" onClick={() => setEditingId(null)}>Cancel</button></div>
+        <AttachmentManager scope={attachmentScope(record)} parentId={record.id} title={`${recordType(record)} Files`} />
       </div> : readingId === record.id ? <article key={record.id} className="content-card"><h3>{record.title}</h3>{editableFields(record).filter((field) => field !== "companyId").map((field) => <p key={field}><strong>{fieldLabel(field)}:</strong> {String(record[field as keyof ResearchRecord] ?? "")}</p>)}<button type="button" className="ghost-button" onClick={() => setReadingId(null)}>Close</button></article> : <article key={record.id} className="stack-row"><div><strong>{record.title}</strong><span>{recordType(record)} · {record.status}</span></div><div className="inline-actions"><button type="button" className="ghost-button" onClick={() => setReadingId(record.id)}>Read</button><button type="button" className="ghost-button" onClick={() => beginEdit(record)}>Edit</button><button type="button" className="danger-button" onClick={() => void remove(record)}>Delete</button></div></article>)}</div> : <p className="muted">No research is associated with this company.</p>}
     </section> : null}
   </div>;
