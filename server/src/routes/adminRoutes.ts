@@ -437,3 +437,12 @@ adminRouter.delete("/valuation-models/:valuationModelId", async (req, res, next)
     next(error);
   }
 });
+
+adminRouter.delete("/contact-messages/:messageId", async (req, res, next) => {
+  try {
+    await prisma.contactMessage.delete({ where: { id: req.params.messageId } });
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});

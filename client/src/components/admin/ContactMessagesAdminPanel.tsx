@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   fetchAdminContactMessages,
   updateAdminContactMessageStatus,
+  deleteAdminContactMessage,
   type AdminContactMessage,
   type ContactMessageStatus
 } from "../../services/adminApi.js";
@@ -46,6 +47,11 @@ export function ContactMessagesAdminPanel() {
     await updateAdminContactMessageStatus(token, messageId, status);
     await load(statusFilter, search);
   };
+  const deleteMessage = async (messageId: string) => {
+  if (!token || !window.confirm("Delete this contact message permanently?")) return;
+  await deleteAdminContactMessage(token, messageId);
+  await load(statusFilter, search);
+};
 
   return (
     <article className="card admin-panel admin-panel-wide">
@@ -63,6 +69,7 @@ export function ContactMessagesAdminPanel() {
             <option key={status} value={status}>{status}</option>
           ))}
         </select>
+        
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -88,6 +95,9 @@ export function ContactMessagesAdminPanel() {
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
+                <button type="button" className="danger-button" onClick={() => void deleteMessage(message.id)}>
+    Delete
+  </button>
               </div>
             </article>
           ))

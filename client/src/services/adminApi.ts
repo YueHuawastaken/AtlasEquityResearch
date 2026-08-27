@@ -463,3 +463,7 @@ export async function updateAdminContactMessageStatus(token: string, messageId: 
   const response = await api.patch<{ item: AdminContactMessage }>(`/api/admin/contact-messages/${messageId}`, { status }, authHeaders(token));
   return response.data.item;
 }
+
+export async function deleteAdminContactMessage(token: string, messageId: string) {
+  await api.delete(`/api/admin/contact-messages/${messageId}`, authHeaders(token));
+}
