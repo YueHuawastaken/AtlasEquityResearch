@@ -58,7 +58,8 @@ adminRouter.get("/contact-messages", async (req, res, next) => {
       take: 50
     });
 
-    res.json({ items });
+    // res.json({ items });
+    res.set("Cache-Control", "no-store").json({ items });
   } catch (error) {
     next(error);
   }
@@ -236,7 +237,8 @@ adminRouter.get("/industry-reports", async (_req, res, next) => {
       include: { company: { select: { id: true, name: true, ticker: true } } }
     });
 
-    res.json({ items });
+    // res.json({ items });
+    res.set("Cache-Control", "no-store").json({ items });
   } catch (error) {
     next(error);
   }
@@ -305,7 +307,8 @@ adminRouter.get("/market-outlooks", async (_req, res, next) => {
       include: { company: { select: { id: true, name: true, ticker: true } } }
     });
 
-    res.json({ items });
+    // res.json({ items });
+    res.set("Cache-Control", "no-store").json({ items });
   } catch (error) {
     next(error);
   }
@@ -374,7 +377,8 @@ adminRouter.get("/valuation-models", async (_req, res, next) => {
       include: { company: { select: { id: true, name: true, ticker: true } } }
     });
 
-    res.json({ items });
+    // res.json({ items });
+    res.set("Cache-Control", "no-store").json({ items });
   } catch (error) {
     next(error);
   }
