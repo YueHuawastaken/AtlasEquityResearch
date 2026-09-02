@@ -2,12 +2,20 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useState } from "react";
 import { fetchAdminContactMessages, updateAdminContactMessageStatus, deleteAdminContactMessage } from "../../services/adminApi.js";
 const statuses = ["new", "in_review", "resolved", "spam"];
+function formatTimestamp(value) {
+    return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+function previewText(message) {
+    const normalized = message.trim().replace(/\s+/g, " ");
+    return normalized.length > 140 ? `${normalized.slice(0, 140)}…` : normalized;
+}
 export function ContactMessagesAdminPanel() {
     const token = localStorage.getItem("atlas-admin-token");
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState("");
     const [search, setSearch] = useState("");
+    const [expandedId, setExpandedId] = useState(null);
     const load = async (nextStatus, nextSearch) => {
         if (!token)
             return;
@@ -44,7 +52,15 @@ export function ContactMessagesAdminPanel() {
         if (!token || !window.confirm("Delete this contact message permanently?"))
             return;
         await deleteAdminContactMessage(token, messageId);
+        if (expandedId === messageId)
+            setExpandedId(null);
         await load(statusFilter, search);
     };
-    return (_jsxs("article", { className: "card admin-panel admin-panel-wide", children: [_jsx("div", { className: "panel-heading", children: _jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Contact Inbox" }), _jsx("h2", { children: "Inbound Messages" })] }) }), _jsxs("form", { className: "filter-bar", onSubmit: applyFilters, children: [_jsxs("select", { value: statusFilter, onChange: (event) => setStatusFilter(event.target.value), children: [_jsx("option", { value: "", children: "All statuses" }), statuses.map((status) => (_jsx("option", { value: status, children: status }, status)))] }), _jsx("input", { value: search, onChange: (event) => setSearch(event.target.value), placeholder: "Search by name, email, subject, or content" }), _jsx("button", { type: "submit", className: "ghost-button", children: "Filter" })] }), _jsx("div", { className: "admin-list contact-message-list", children: loading ? (_jsx("div", { className: "table-empty", children: "Loading messages\u2026" })) : items.length ? (items.map((message) => (_jsxs("article", { className: "admin-list-item admin-message-item", children: [_jsxs("div", { children: [_jsx("strong", { children: message.subject }), _jsxs("span", { children: [message.name, " \u00B7 ", message.email] }), _jsx("p", { className: "muted", children: message.message })] }), _jsxs("div", { className: "inline-actions", children: [_jsx("select", { value: message.status, onChange: (event) => void updateStatus(message.id, event.target.value), children: statuses.map((status) => (_jsx("option", { value: status, children: status }, status))) }), _jsx("button", { type: "button", className: "danger-button", onClick: () => void deleteMessage(message.id), children: "Delete" })] })] }, message.id)))) : (_jsx("div", { className: "table-empty", children: "No contact messages match this filter." })) })] }));
+    const expandedMessage = items.find((message) => message.id === expandedId) ?? null;
+    return (_jsxs("article", { className: "card admin-panel admin-panel-wide", children: [_jsx("div", { className: "panel-heading", children: _jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Contact Inbox" }), _jsx("h2", { children: "Inbound Messages" })] }) }), _jsxs("form", { className: "filter-bar", onSubmit: applyFilters, children: [_jsxs("select", { value: statusFilter, onChange: (event) => setStatusFilter(event.target.value), children: [_jsx("option", { value: "", children: "All statuses" }), statuses.map((status) => (_jsx("option", { value: status, children: status }, status)))] }), _jsx("input", { value: search, onChange: (event) => setSearch(event.target.value), placeholder: "Search by name, email, subject, or content" }), _jsx("button", { type: "submit", className: "ghost-button", children: "Filter" })] }), _jsx("div", { className: "admin-list contact-message-list", children: loading ? (_jsx("div", { className: "table-empty", children: "Loading messages\u2026" })) : items.length ? (items.map((message) => (_jsxs("article", { className: "admin-list-item admin-message-item contact-message-row", role: "button", tabIndex: 0, onClick: () => setExpandedId(message.id), onKeyDown: (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setExpandedId(message.id);
+                        }
+                    }, children: [_jsxs("div", { className: "contact-message-summary", children: [_jsxs("div", { className: "contact-message-top", children: [_jsx("strong", { children: message.subject }), _jsx("span", { className: "contact-message-time", children: formatTimestamp(message.createdAt) })] }), _jsxs("span", { className: "contact-message-sender", children: [message.name, " \u00B7 ", message.email] }), _jsx("p", { className: "contact-message-preview", children: previewText(message.message) })] }), _jsxs("div", { className: "inline-actions", onClick: (event) => event.stopPropagation(), children: [_jsx("select", { value: message.status, onChange: (event) => void updateStatus(message.id, event.target.value), children: statuses.map((status) => (_jsx("option", { value: status, children: status }, status))) }), _jsx("button", { type: "button", className: "danger-button", onClick: () => void deleteMessage(message.id), children: "Delete" })] })] }, message.id)))) : (_jsx("div", { className: "table-empty", children: "No contact messages match this filter." })) }), expandedMessage ? (_jsx("div", { className: "contact-message-overlay", onClick: () => setExpandedId(null), children: _jsxs("div", { className: "contact-message-modal", onClick: (event) => event.stopPropagation(), children: [_jsxs("div", { className: "contact-message-modal-header", children: [_jsxs("div", { children: [_jsx("p", { className: "eyebrow", children: "Contact Inbox" }), _jsx("h3", { children: expandedMessage.subject }), _jsxs("span", { className: "contact-message-sender", children: [expandedMessage.name, " \u00B7 ", expandedMessage.email] }), _jsxs("span", { className: "contact-message-time", children: [" \u00B7 ", formatTimestamp(expandedMessage.createdAt)] })] }), _jsx("button", { type: "button", className: "ghost-button", onClick: () => setExpandedId(null), children: "Close" })] }), _jsx("p", { className: "contact-message-full", children: expandedMessage.message }), _jsxs("div", { className: "inline-actions", children: [_jsx("select", { value: expandedMessage.status, onChange: (event) => void updateStatus(expandedMessage.id, event.target.value), children: statuses.map((status) => (_jsx("option", { value: status, children: status }, status))) }), _jsx("button", { type: "button", className: "danger-button", onClick: () => void deleteMessage(expandedMessage.id), children: "Delete" })] })] }) })) : null] }));
 }

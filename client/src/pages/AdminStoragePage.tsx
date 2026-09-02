@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { AttachmentManager } from "../components/admin/AttachmentManager.js";
 import {
+  deleteCompany,
   deleteIndustryReport,
   deleteMarketOutlook,
   deleteMemo,
@@ -120,6 +121,17 @@ export function AdminStoragePage() {
     await load();
   };
 
+  const removeCompany = async (companyId: string) => {
+    if (!token) return;
+    if (!window.confirm("Delete this company permanently? This cannot be undone.")) return;
+
+    await deleteCompany(token, companyId);
+
+    if (selectedCompanyId === companyId) setSelectedCompanyId("");
+
+    await load();
+  };
+
   const beginEdit = (record: ResearchRecord) => {
     const values: Record<string, unknown> = {};
     for (const field of editableFields(record)) values[field] = record[field as keyof ResearchRecord] ?? "";
@@ -132,7 +144,7 @@ export function AdminStoragePage() {
     <section className="section-header"><div><p className="eyebrow">Admin Storage</p><h1>Manage Research</h1><p className="muted">Search a company to manage its associated research records.</p></div></section>
     <section className="card content-card">
       <label>Search by company name or ticker<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. ACME or Acme Corporation" /></label>
-      <div className="stack-list">{matchingCompanies.map((company) => <button key={company.id} type="button" className="stack-row" onClick={() => setSelectedCompanyId(company.id)}><strong>{company.name}</strong><span>{company.ticker} · {company.sector}</span></button>)}</div>
+      <div className="stack-list">{matchingCompanies.map((company) => <article key={company.id} className="stack-row"><div role="button" tabIndex={0} className="stack-row-select" onClick={() => setSelectedCompanyId(company.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedCompanyId(company.id); } }}><strong>{company.name}</strong><span>{company.ticker} · {company.sector}</span></div><div className="inline-actions"><button type="button" className="danger-button" onClick={() => void removeCompany(company.id)}>Delete</button></div></article>)}</div>
     </section>
     {selectedCompany ? <section className="content-card"><p className="eyebrow">Selected Company</p><h2><Link to={`/companies/${selectedCompany.id}`}>{selectedCompany.name} ({selectedCompany.ticker})</Link></h2>
       {selectedRecords.length ? <div className="stack-list">{selectedRecords.map((record) => editingId === record.id ? <div key={record.id} className="admin-form">
