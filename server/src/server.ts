@@ -91,6 +91,18 @@ export function createServer() {
   app.get("/api/healthz", (_req: Request, res: Response) => {
     res.json({ status: "ok" });
   });
+app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  console.error("SERVER ERROR:", error);
+
+  if (error instanceof Error) {
+    console.error("MESSAGE:", error.message);
+    console.error("STACK:", error.stack);
+  } else {
+    console.error("ERROR OBJECT:", JSON.stringify(error, null, 2));
+  }
+
+  res.status(500).json({ message: "Internal server error" });
+});
 
   return app;
 }

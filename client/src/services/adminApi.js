@@ -118,7 +118,7 @@ export async function createAdminAttachment(token, scope, parentId, file) {
         ...authHeaders(token),
         headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data"
+            // "Content-Type": "multipart/form-data"
         }
     });
     return response.data.item;
